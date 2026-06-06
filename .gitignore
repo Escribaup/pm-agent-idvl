@@ -1,0 +1,15 @@
+# Vercel
+.vercel/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+
+# Dados locais (nunca versionar JSONs de projeto com dados reais)
+*.local.json
+projetos/
+pm-agent-backup-*.json

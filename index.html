@@ -1,0 +1,2210 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PM Agent · iDVL</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,-apple-system,sans-serif;background:#f4f6fa;color:#0f172a;min-height:100vh}
+input,select,textarea,button{font-family:inherit}
+button{cursor:pointer;border:none;outline:none}
+input,select,textarea{outline:none}
+
+header{background:#232d42;padding:12px 18px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;position:sticky;top:0;z-index:40}
+.logo{width:30px;height:30px;background:#1e6efb;border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.brand{color:#fff;font-weight:700;font-size:14px}
+.brand small{display:block;color:#94a3b8;font-size:10px;font-weight:400}
+.hcontrols{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-left:auto}
+#proj-sel{background:#334155;color:#fff;border:1px solid #475569;border-radius:7px;padding:5px 9px;font-size:12px;max-width:200px}
+
+/* AI status pill in header */
+#ai-pill{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:99px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid;transition:all .2s}
+#ai-pill.ok{background:#e0f5ec;color:#0a8a5c;border-color:#6ee7b7}
+#ai-pill.warn{background:#fef3c7;color:#92400e;border-color:#fcd34d}
+#ai-dot{width:7px;height:7px;border-radius:50%}
+#ai-pill.ok #ai-dot{background:#0a8a5c}
+#ai-pill.warn #ai-dot{background:#d97706}
+
+#sync-bar{background:#f0fdf4;border-bottom:1px solid #bbf7d0;padding:5px 18px;font-size:11px;color:#166534;display:none;align-items:center;gap:5px}
+#folder-bar{background:#fffbeb;border-bottom:1px solid #fcd34d;padding:6px 18px;font-size:12px;color:#92400e;display:none;align-items:center;gap:8px;flex-wrap:wrap}
+
+nav{background:#fff;border-bottom:1px solid #e2e8f0;display:flex;overflow-x:auto}
+nav button{padding:10px 15px;font-size:13px;font-weight:500;background:transparent;color:#64748b;border-bottom:2px solid transparent;white-space:nowrap;transition:all .15s}
+nav button.active{color:#1e6efb;font-weight:700;border-bottom-color:#1e6efb}
+
+main{padding:16px;max-width:840px;width:100%;margin:0 auto}
+
+.card{background:#fff;border-radius:12px;border:1px solid #e2e8f0;padding:16px;margin-bottom:12px}
+.card-title{font-size:13px;font-weight:700;margin-bottom:12px}
+.stack>*+*{margin-top:12px}
+
+.btn{display:inline-flex;align-items:center;gap:5px;padding:8px 14px;border-radius:8px;font-size:13px;font-weight:600;white-space:nowrap;transition:opacity .15s}
+.btn:disabled{opacity:.4;cursor:default}
+.btn-primary{background:#1e6efb;color:#fff}
+.btn-secondary{background:#f1f5f9;color:#475569;border:1px solid #e2e8f0}
+.btn-dark{background:#232d42;color:#fff}
+.btn-danger{background:#fee2e2;color:#dc2626;border:1px solid #fca5a5}
+.btn-ghost{background:transparent;color:#1e6efb;padding:0;font-size:12px}
+.btn-sm{padding:5px 10px;font-size:12px}
+.btn-green{background:#e0f5ec;color:#0a8a5c;border:1px solid #6ee7b7}
+
+.badge{font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:2px 8px;border-radius:99px;white-space:nowrap}
+.bar-track{height:6px;background:#e8edf4;border-radius:99px;overflow:hidden}
+.bar-fill{height:100%;border-radius:99px;transition:width .4s}
+.field{display:flex;flex-direction:column;gap:4px}
+label{font-size:12px;font-weight:600;color:#374151}
+.inp{width:100%;border:1px solid #e2e8f0;border-radius:8px;padding:8px 12px;font-size:13px;color:#0f172a}
+.inp:focus{border-color:#1e6efb}
+textarea.inp{resize:vertical;min-height:72px}
+
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.flex-row{display:flex;align-items:center;gap:8px}
+.flex-bet{display:flex;align-items:center;justify-content:space-between;gap:8px}
+
+.metric{background:#fff;border-radius:10px;border:1px solid #e2e8f0;padding:12px;text-align:center}
+.metric-val{font-size:22px;font-weight:700}
+.metric-lbl{font-size:11px;color:#94a3b8;margin-top:2px}
+
+.log-row{background:#fff;border-radius:10px;border:1px solid #e2e8f0;padding:11px 14px;display:flex;gap:10px;align-items:flex-start;margin-bottom:8px}
+.log-meta{font-size:11px;color:#94a3b8;text-align:right;white-space:nowrap;flex-shrink:0}
+.risk-row{background:#fff;border-radius:10px;padding:13px 14px;display:flex;gap:10px;align-items:flex-start;margin-bottom:8px}
+.ms-row{background:#fff;border-radius:10px;border:1px solid #e2e8f0;padding:12px 14px;display:flex;gap:12px;align-items:center;margin-bottom:8px}
+.kr-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-top:1px solid #f8fafc}
+
+.overlay{position:fixed;inset:0;background:rgba(15,23,42,.6);display:none;align-items:flex-start;justify-content:center;z-index:100;padding:32px 14px;overflow-y:auto}
+.overlay.open{display:flex}
+.modal{background:#fff;border-radius:14px;padding:22px;width:100%;max-width:500px;box-shadow:0 12px 48px rgba(0,0,0,.2)}
+.modal.wide{max-width:660px}
+.modal-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.modal-title{font-size:15px;font-weight:700}
+
+/* ── AI Config modal ── */
+.provider-card{border:2px solid #e2e8f0;border-radius:10px;padding:14px;cursor:pointer;transition:all .2s;position:relative}
+.provider-card:hover{border-color:#94a3b8}
+.provider-card.selected{border-color:#1e6efb;background:#f0f7ff}
+.provider-card .p-name{font-size:14px;font-weight:700;margin-bottom:2px}
+.provider-card .p-sub{font-size:12px;color:#64748b}
+.provider-card .p-check{position:absolute;top:10px;right:10px;font-size:16px;display:none}
+.provider-card.selected .p-check{display:block}
+.key-status{font-size:11px;padding:3px 8px;border-radius:99px;font-weight:600}
+.key-status.saved{background:#e0f5ec;color:#0a8a5c}
+.key-status.missing{background:#fef3c7;color:#92400e}
+
+.schema{background:#0f172a;border-radius:10px;padding:14px;font-family:'Courier New',monospace;font-size:11.5px;line-height:1.75;color:#e2e8f0;overflow:auto;white-space:pre;max-height:400px}
+.agent-box{background:#f0f7ff;border:1px solid #bfdbfe;border-radius:8px;padding:12px;font-size:13px;color:#1e40af;line-height:1.6;margin-top:10px;display:none}
+.agent-lbl{font-size:10px;font-weight:700;text-transform:uppercase;color:#1e6efb;margin-bottom:3px}
+.report-body{background:#f8fafc;border-radius:9px;padding:14px;max-height:400px;overflow-y:auto;font-family:'Courier New',monospace;font-size:12px;line-height:1.85;color:#374151;white-space:pre-wrap;min-height:100px}
+.empty{text-align:center;padding:48px 16px;color:#94a3b8}
+.empty-icon{font-size:32px;margin-bottom:8px}
+.tag-row{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px}
+.tag{padding:3px 10px;border-radius:99px;font-size:11px;font-weight:700;cursor:pointer;border:1.5px solid #e2e8f0;background:transparent;color:#94a3b8}
+.info-box{border-radius:10px;padding:13px;margin-bottom:10px}
+.info-box.blue{background:#f0f7ff;border:1px solid #bfdbfe}
+.info-box.green{background:#f0fdf4;border:1px solid #bbf7d0}
+.info-box.gray{background:#f8fafc;border:1px solid #e2e8f0}
+.info-title{font-size:13px;font-weight:700;margin-bottom:5px}
+.info-sub{font-size:12px;color:#64748b;line-height:1.6}
+
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);padding:10px 18px;border-radius:9px;font-size:12px;font-weight:600;z-index:999;max-width:400px;text-align:center;box-shadow:0 4px 20px rgba(0,0,0,.18);display:none}
+#toast.show{display:block}
+#toast.ok{background:#232d42;color:#fff}
+#toast.err{background:#fee2e2;color:#dc2626}
+
+.spin{width:16px;height:16px;border:2px solid #e2e8f0;border-top-color:#1e6efb;border-radius:50%;animation:spin .8s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media(max-width:600px){.g4{grid-template-columns:1fr 1fr}.g3{grid-template-columns:1fr}.g2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+      <rect x="1" y="1" width="6" height="6" rx="1.5" fill="white"/>
+      <rect x="9" y="1" width="6" height="6" rx="1.5" fill="white" opacity=".6"/>
+      <rect x="1" y="9" width="6" height="6" rx="1.5" fill="white" opacity=".6"/>
+      <rect x="9" y="9" width="6" height="6" rx="1.5" fill="white" opacity=".3"/>
+    </svg>
+  </div>
+  <div class="brand">PM Agent <small>iDVL Tecnologia Contábil</small></div>
+  <div class="hcontrols">
+    <select id="proj-sel" onchange="switchProject(this.value)"></select>
+    <button class="btn btn-sm" title="Editar / Excluir projeto" style="background:#334155;color:#cbd5e1;border:1px solid #475569;padding:5px 8px" onclick="openEditProject()">✏️</button>
+    <button class="btn btn-primary btn-sm" onclick="openModal('m-new')">+ Projeto</button>
+    <button class="btn btn-sm" style="background:#334155;color:#cbd5e1;border:1px solid #475569" onclick="openModal('m-folder')">📁 Pasta</button>
+    <button class="btn btn-sm" style="background:#334155;color:#cbd5e1;border:1px solid #475569" onclick="openModal('m-backup')">⬇ Backup</button>
+    <button class="btn btn-sm" style="background:#334155;color:#cbd5e1;border:1px solid #475569" onclick="openModal('m-schema')">{ } Schema</button>
+    <div id="ai-pill" class="warn" onclick="openModal('m-ai')">
+      <div id="ai-dot"></div>
+      <span id="ai-label">IA: configurar</span>
+    </div>
+  </div>
+</header>
+
+<div id="sync-bar"><span>✓</span><span id="sync-txt">—</span></div>
+<div id="folder-bar">
+  <span>📁</span><span id="folder-name">—</span>
+  <button class="btn btn-secondary btn-sm" onclick="pickFolder()">Alterar</button>
+  <button class="btn btn-secondary btn-sm" onclick="saveToFolder()">💾 Salvar</button>
+  <button class="btn btn-secondary btn-sm" onclick="loadFromFolder()">📂 Carregar</button>
+</div>
+
+<nav id="nav">
+  <button class="active" onclick="setView('dashboard',this)">Dashboard</button>
+  <button onclick="setView('okr',this)">OKRs</button>
+  <button onclick="setView('log',this)">Log</button>
+  <button onclick="setView('riscos',this)">Riscos</button>
+  <button onclick="setView('marcos',this)">Marcos</button>
+  <button onclick="setView('artefatos',this)">Artefatos</button>
+  <button onclick="setView('tarefas',this)" id="nav-tarefas">Tarefas</button>
+  <button onclick="setView('calendario',this)">Calendário</button>
+</nav>
+
+<main id="content"></main>
+
+<!-- ════════════════ MODALS ════════════════ -->
+
+<!-- AI Config -->
+<div id="m-ai" class="overlay" onclick="bgClose(event,'m-ai')">
+  <div class="modal wide">
+    <div class="modal-hdr">
+      <span class="modal-title">🤖 Configurar IA</span>
+      <button class="btn btn-secondary btn-sm" onclick="closeModal('m-ai')">✕</button>
+    </div>
+
+    <p style="font-size:13px;color:#64748b;margin-bottom:14px;line-height:1.6">
+      Escolha o provedor e cole sua API key. A chave fica salva <strong>apenas no seu navegador</strong> (localStorage) e nunca é enviada para nenhum servidor externo além da API do provedor escolhido.
+    </p>
+
+    <!-- Provider cards -->
+    <div class="g3" style="margin-bottom:16px" id="provider-cards">
+      <div class="provider-card" id="pc-claude" onclick="selectProvider('claude')">
+        <div style="font-size:22px;margin-bottom:6px">🟣</div>
+        <div class="p-name">Claude</div>
+        <div class="p-sub">Anthropic<br>claude-sonnet-4-5</div>
+        <div class="p-check">✓</div>
+      </div>
+      <div class="provider-card" id="pc-gemini" onclick="selectProvider('gemini')">
+        <div style="font-size:22px;margin-bottom:6px">🔵</div>
+        <div class="p-name">Gemini</div>
+        <div class="p-sub">Google<br>gemini-2.0-flash</div>
+        <div class="p-check">✓</div>
+      </div>
+      <div class="provider-card" id="pc-openai" onclick="selectProvider('openai')">
+        <div style="font-size:22px;margin-bottom:6px">🟢</div>
+        <div class="p-name">ChatGPT</div>
+        <div class="p-sub">OpenAI<br>gpt-4o-mini</div>
+        <div class="p-check">✓</div>
+      </div>
+    </div>
+
+    <!-- Key input -->
+    <div class="field" style="margin-bottom:10px">
+      <label id="key-label">API Key</label>
+      <div style="display:flex;gap:8px">
+        <input class="inp" id="ai-key-inp" type="password" placeholder="Cole sua API key aqui…" style="flex:1" oninput="onKeyInpInput()">
+        <button class="btn btn-secondary btn-sm" id="key-toggle" onclick="toggleKeyVis()">👁</button>
+      </div>
+    </div>
+
+    <!-- Model input -->
+    <div class="field" style="margin-bottom:10px">
+      <label>Modelo <span style="font-size:10px;color:#94a3b8;font-weight:400">(deixe em branco para usar o padrão)</span></label>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input class="inp" id="ai-model-inp" placeholder="" style="flex:1;font-family:monospace;font-size:12px">
+        <button class="btn btn-secondary btn-sm" onclick="resetModel()" title="Restaurar modelo padrão">↺</button>
+      </div>
+      <div id="ai-model-hint" style="font-size:11px;color:#94a3b8;margin-top:3px"></div>
+    </div>
+
+    <!-- Link para obter key -->
+    <div id="key-hint" style="font-size:12px;color:#64748b;margin-bottom:14px">
+      → <a id="key-link" href="#" target="_blank" style="color:#1e6efb">Obter API key</a>
+    </div>
+
+    <!-- Keys status -->
+    <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:12px;margin-bottom:14px">
+      <div style="font-size:12px;font-weight:700;color:#475569;margin-bottom:8px">Configuração salva</div>
+      <div style="display:flex;flex-direction:column;gap:6px" id="keys-status"></div>
+    </div>
+
+    <div style="display:flex;gap:8px;justify-content:space-between;flex-wrap:wrap">
+      <button class="btn btn-danger btn-sm" onclick="clearKey()">🗑 Apagar chave selecionada</button>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-secondary" onclick="closeModal('m-ai')">Cancelar</button>
+        <button class="btn btn-primary" onclick="saveKey()">💾 Salvar chave</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- New Project -->
+<div id="m-new" class="overlay" onclick="bgClose(event,'m-new')">
+  <div class="modal">
+    <div class="modal-hdr"><span class="modal-title">Novo Projeto</span><button class="btn btn-secondary btn-sm" onclick="closeModal('m-new')">✕</button></div>
+    <div class="stack">
+      <div class="field"><label>Nome *</label><input class="inp" id="np-name" placeholder="Ex: OKR T — BI de Controle da Receita"></div>
+      <div class="field"><label>Contexto / Órgão</label><input class="inp" id="np-ctx" placeholder="Ex: SEFA/PR · DTE-CMF"></div>
+      <div class="field"><label>Patrocinador</label><input class="inp" id="np-spon" placeholder="Ex: Chaiana"></div>
+      <div class="g2">
+        <div class="field"><label>Prazo</label><input type="date" class="inp" id="np-dl"></div>
+        <div class="field"><label>Fase</label>
+          <select class="inp" id="np-ph">
+            <option>Iniciação</option><option>Planejamento</option><option selected>Execução</option><option>Monitoramento</option><option>Encerramento</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="flex-row" style="justify-content:flex-end;margin-top:16px;gap:8px">
+      <button class="btn btn-secondary" onclick="closeModal('m-new')">Cancelar</button>
+      <button class="btn btn-primary" onclick="addProject()">Criar Projeto</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Project -->
+<div id="m-edit" class="overlay" onclick="bgClose(event,'m-edit')">
+  <div class="modal">
+    <div class="modal-hdr"><span class="modal-title">✏️ Editar Projeto</span><button class="btn btn-secondary btn-sm" onclick="closeModal('m-edit')">✕</button></div>
+    <div class="stack">
+      <div class="field"><label>Nome *</label><input class="inp" id="ep-name" placeholder="Nome do projeto"></div>
+      <div class="field"><label>Contexto / Órgão</label><input class="inp" id="ep-ctx" placeholder="Ex: SEFA/PR · DTE-CMF"></div>
+      <div class="field"><label>Patrocinador</label><input class="inp" id="ep-spon" placeholder="Ex: Chaiana"></div>
+      <div class="g2">
+        <div class="field"><label>Prazo</label><input type="date" class="inp" id="ep-dl"></div>
+        <div class="field"><label>Fase</label>
+          <select class="inp" id="ep-ph">
+            <option>Iniciação</option><option>Planejamento</option><option>Execução</option><option>Monitoramento</option><option>Encerramento</option>
+          </select>
+        </div>
+      </div>
+      <div class="field"><label>Status</label>
+        <select class="inp" id="ep-status">
+          <option value="em andamento">Em andamento</option>
+          <option value="concluído">Concluído</option>
+          <option value="pausado">Pausado</option>
+          <option value="em risco">Em risco</option>
+        </select>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:18px;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-danger btn-sm" onclick="deleteProject()">🗑 Excluir projeto</button>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-secondary" onclick="closeModal('m-edit')">Cancelar</button>
+        <button class="btn btn-primary" onclick="saveEditProject()">💾 Salvar alterações</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Task Modal -->
+<div id="m-task" class="overlay" onclick="bgClose(event,'m-task')">
+  <div class="modal wide">
+    <div class="modal-hdr">
+      <span class="modal-title" id="m-task-title">Nova Tarefa</span>
+      <button class="btn btn-secondary btn-sm" onclick="closeModal('m-task')">✕</button>
+    </div>
+    <div class="stack" style="gap:10px">
+      <div class="field"><label>Título *</label><input class="inp" id="tk-title" placeholder="Ex: Integrar fontes SIAFIC ao modelo de dados"></div>
+      <div class="field"><label>Descrição</label><textarea class="inp" id="tk-desc" style="min-height:60px" placeholder="Detalhes, contexto, links úteis…"></textarea></div>
+      <div class="g2">
+        <div class="field"><label>Status</label>
+          <select class="inp" id="tk-status">
+            <option value="a_fazer">A fazer</option>
+            <option value="em_andamento">Em andamento</option>
+            <option value="em_revisao">Em revisão</option>
+            <option value="concluida">Concluída</option>
+            <option value="cancelada">Cancelada</option>
+          </select>
+        </div>
+        <div class="field"><label>Prioridade</label>
+          <select class="inp" id="tk-priority">
+            <option value="baixa">Baixa</option>
+            <option value="media" selected>Média</option>
+            <option value="alta">Alta</option>
+            <option value="critica">Crítica</option>
+          </select>
+        </div>
+      </div>
+      <div class="g2">
+        <div class="field"><label>Data de início</label><input type="date" class="inp" id="tk-start"></div>
+        <div class="field"><label>Prazo</label><input type="date" class="inp" id="tk-due"></div>
+      </div>
+      <div class="g2">
+        <div class="field"><label>Projeto vinculado</label>
+          <select class="inp" id="tk-project">
+            <option value="">— Sem projeto —</option>
+          </select>
+        </div>
+        <div class="field"><label>Responsável</label><input class="inp" id="tk-assignee" placeholder="Julio Moreira"></div>
+      </div>
+      <div class="field"><label>Tags (separadas por vírgula)</label><input class="inp" id="tk-tags" placeholder="BI, SIAFIC, integração"></div>
+      <div class="field">
+        <label>Checklist</label>
+        <div id="tk-checklist-items" style="margin-bottom:6px"></div>
+        <div style="display:flex;gap:6px">
+          <input class="inp" id="tk-cl-new" placeholder="Adicionar item…" style="flex:1" onkeydown="if(event.key==='Enter'){event.preventDefault();addChecklistItemModal()}">
+          <button class="btn btn-secondary btn-sm" onclick="addChecklistItemModal()">+ Item</button>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:16px;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-danger btn-sm" id="tk-del-btn" style="display:none" onclick="deleteCurrentTask()">🗑 Excluir</button>
+      <div style="display:flex;gap:8px;margin-left:auto">
+        <button class="btn btn-secondary" onclick="closeModal('m-task')">Cancelar</button>
+        <button class="btn btn-primary" onclick="saveTask()">💾 Salvar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Folder -->
+<div id="m-folder" class="overlay" onclick="bgClose(event,'m-folder')">
+  <div class="modal">
+    <div class="modal-hdr"><span class="modal-title">📁 Pasta de Projetos</span><button class="btn btn-secondary btn-sm" onclick="closeModal('m-folder')">✕</button></div>
+    <div class="info-box blue">
+      <div class="info-title" style="color:#1e40af">Como funciona</div>
+      <ul class="info-sub" style="padding-left:16px;margin-top:4px">
+        <li>Selecione uma pasta (ex: Google Drive / iDVL / PM-Agent /)</li>
+        <li>O app salva um <code>.json</code> por projeto nessa pasta</li>
+        <li>Sincronize via Google Drive para usar em outros computadores</li>
+        <li>Funciona no Chrome e Edge modernos (v86+)</li>
+      </ul>
+    </div>
+    <div class="info-box gray"><div class="info-title" style="color:#475569">⚠️ Requisito</div><div class="info-sub">O navegador pedirá permissão de leitura/escrita na pasta. Apenas Chrome e Edge suportam este recurso.</div></div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:4px" onclick="pickFolder();closeModal('m-folder')">📁 Selecionar Pasta</button>
+  </div>
+</div>
+
+<!-- Backup -->
+<div id="m-backup" class="overlay" onclick="bgClose(event,'m-backup')">
+  <div class="modal">
+    <div class="modal-hdr"><span class="modal-title">Backup Manual</span><button class="btn btn-secondary btn-sm" onclick="closeModal('m-backup')">✕</button></div>
+    <div class="info-box blue">
+      <div class="info-title" style="color:#1e40af">📤 Exportar projeto atual</div>
+      <div id="bk-info" class="info-sub" style="margin:5px 0 10px">—</div>
+      <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="exportJSON()">Baixar .json</button>
+    </div>
+    <div class="info-box green">
+      <div class="info-title" style="color:#166534">📥 Importar .json</div>
+      <div class="info-sub" style="margin:5px 0 10px">Carregue um arquivo JSON exportado pelo PM Agent.</div>
+      <input type="file" id="imp-file" accept=".json" style="display:none" onchange="importJSON(this)">
+      <button class="btn btn-secondary" style="width:100%;justify-content:center" onclick="document.getElementById('imp-file').click()">Selecionar arquivo…</button>
+    </div>
+    <div style="display:flex;justify-content:flex-end;margin-top:10px">
+      <button class="btn btn-secondary" onclick="closeModal('m-backup')">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Schema -->
+<div id="m-schema" class="overlay" onclick="bgClose(event,'m-schema')">
+  <div class="modal wide">
+    <div class="modal-hdr"><span class="modal-title">{ } Schema JSON</span><button class="btn btn-secondary btn-sm" onclick="closeModal('m-schema')">✕</button></div>
+    <p style="font-size:13px;color:#64748b;margin-bottom:12px;line-height:1.6">
+      Clique em <strong>Copiar Prompt</strong> e cole em qualquer IA (Claude, Gemini, ChatGPT).<br>
+      A IA vai fazer as perguntas certas e gerar o JSON pronto para importar no app.<br>
+      <span style="color:#94a3b8;font-size:12px">Abaixo: o schema de referência que a IA vai seguir.</span>
+    </p>
+    <div class="schema" id="schema-out"></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
+      <button class="btn btn-primary" onclick="copySchema()">📋 Copiar Prompt</button>
+      <button class="btn btn-secondary" onclick="closeModal('m-schema')">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Report -->
+<div id="m-report" class="overlay" onclick="bgClose(event,'m-report')">
+  <div class="modal wide">
+    <div class="modal-hdr"><span class="modal-title">Status Report Semanal</span><button class="btn btn-secondary btn-sm" onclick="closeModal('m-report')">✕</button></div>
+    <div class="report-body" id="report-out">O relatório aparecerá aqui.</div>
+    <div id="report-btns" style="display:none;margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end">
+      <button class="btn btn-secondary btn-sm" onclick="copyReport()">📋 Copiar Markdown</button>
+      <button class="btn btn-dark btn-sm" onclick="generateReport()">↺ Regenerar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Mini modal: input/confirm reutilizável (substitui prompt/confirm bloqueados em iframe) -->
+<div id="m-mini" class="overlay" style="align-items:center">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-hdr"><span class="modal-title" id="mini-title">—</span></div>
+    <div id="mini-body"></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px" id="mini-btns"></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// CONSTANTES
+// ═══════════════════════════════════════════════════════
+const LOG_TYPES={
+  checkpoint:{label:"Checkpoint",color:"#0f766e",bg:"#ccfbf1"},
+  atualizacao:{label:"Atualização",color:"#64748b",bg:"#f1f5f9"},
+  decisao:{label:"Decisão",color:"#1e6efb",bg:"#e8f0fe"},
+  acao:{label:"Ação",color:"#0a8a5c",bg:"#e0f5ec"},
+  marco:{label:"Marco",color:"#7c3aed",bg:"#ede9fe"},
+  risco:{label:"Risco",color:"#d97706",bg:"#fef3c7"},
+  blocker:{label:"Blocker",color:"#dc2626",bg:"#fee2e2"},
+  reuniao:{label:"Reunião",color:"#be185d",bg:"#fce7f3"},
+  licao:{label:"Lição",color:"#0891b2",bg:"#e0f2fe"},
+};
+const STATUS_CFG={"em andamento":{color:"#1e6efb",bg:"#e8f0fe"},concluído:{color:"#0a8a5c",bg:"#e0f5ec"},pausado:{color:"#d97706",bg:"#fef3c7"},"em risco":{color:"#dc2626",bg:"#fee2e2"}};
+const MS_STATUS=["pendente","em andamento","concluído","cancelado"];
+
+const PROVIDERS={
+  claude:{name:"Claude",model:"claude-haiku-4-5-20251001",url:"https://api.anthropic.com/v1/messages",hint:"https://console.anthropic.com/settings/keys",keyLabel:"Anthropic API Key (sk-ant-...)"},
+  gemini:{name:"Gemini",model:"gemini-2.0-flash",url:"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent",hint:"https://aistudio.google.com/app/apikey",keyLabel:"Google AI Studio Key (AIza...)"},
+  openai:{name:"ChatGPT",model:"gpt-4o-mini",url:"https://api.openai.com/v1/chat/completions",hint:"https://platform.openai.com/api-keys",keyLabel:"OpenAI API Key (sk-...)"},
+};
+
+const SCHEMA_DISPLAY={
+  "_descricao":"Schema PM Agent iDVL v1.0 — gere este JSON com IA e importe no app",
+  id:"<string — identificador único>",name:"<string>",context:"<string — ex: SEFA/PR · DTE-CMF>",
+  status:"<'em andamento'|'concluído'|'pausado'|'em risco'>",deadline:"<YYYY-MM-DD>",
+  phase:"<'Iniciação'|'Planejamento'|'Execução'|'Monitoramento'|'Encerramento'>",
+  sponsor:"<string>",methodology:"<string>",created:"<YYYY-MM-DD>",updated:"<YYYY-MM-DD>",
+  okrs:[{id:"<string>",objective:"<string>",keyResults:[{id:"<string>",text:"<string>",progress:"<0..100>"}]}],
+  log:[{id:"<string>",date:"<YYYY-MM-DD>",type:"<atualizacao|decisao|acao|marco|risco|blocker|reuniao|licao>",text:"<string>",author:"<string>"}],
+  risks:[{id:"<string>",desc:"<string>",prob:"<Baixa|Média|Alta>",impact:"<Baixo|Médio|Alto>",status:"<aberto|mitigado>"}],
+  milestones:[{id:"<string>",name:"<string>",date:"<YYYY-MM-DD>",status:"<pendente|em andamento|concluído|cancelado>"}],
+  tasks:[{
+    id:"<string>",
+    title:"<string — título da tarefa>",
+    description:"<string>",
+    status:"<'a_fazer'|'em_andamento'|'em_revisao'|'concluida'|'cancelada'>",
+    priority:"<'baixa'|'media'|'alta'|'critica'>",
+    startDate:"<YYYY-MM-DD>",
+    dueDate:"<YYYY-MM-DD>",
+    assignee:"<string>",
+    projectId:"<string | null>",
+    tags:["<string>"],
+    checklist:[{id:"<string>",text:"<string>",done:"<boolean>"}],
+    created:"<YYYY-MM-DD>",
+    updated:"<YYYY-MM-DD>"
+  }]
+};
+
+
+
+
+
+// ═══════════════════════════════════════════════════════
+// ESTADO
+// ═══════════════════════════════════════════════════════
+let projects=[], activeId=null, view="dashboard", logType="atualizacao", folderHandle=null, reportMd="";
+let aiProvider="claude"; // provider selecionado na UI
+
+// ═══════════════════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════════════════
+const uid=()=>Math.random().toString(36).slice(2,9);
+const today=()=>new Date().toISOString().slice(0,10);
+const q=id=>document.getElementById(id);
+function fmtDate(d){if(!d)return"";try{return new Date(d+"T12:00:00").toLocaleDateString("pt-BR",{day:"2-digit",month:"short",year:"numeric"})}catch{return d}}
+function daysLeft(d){if(!d)return null;return Math.ceil((new Date(d)-new Date())/86400000)}
+function calcProg(okrs){const all=(okrs||[]).flatMap(o=>o.keyResults||[]);if(!all.length)return 0;return Math.round(all.reduce((s,k)=>s+(k.progress||0),0)/all.length)}
+function ragC(p){return p>=70?"#0a8a5c":p>=40?"#d97706":"#dc2626"}
+function ragL(p){return p>=70?"🟢 Verde":p>=40?"🟡 Amarelo":"🔴 Vermelho"}
+function slug(n){return n.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")}
+function toast(msg,t="ok"){const el=q("toast");el.textContent=msg;el.className="show "+t;clearTimeout(el._t);el._t=setTimeout(()=>el.className="",3500)}
+function badge(type){const c=LOG_TYPES[type]||LOG_TYPES.atualizacao;return`<span class="badge" style="color:${c.color};background:${c.bg}">${c.label}</span>`}
+function bar(val){return`<div class="bar-track"><div class="bar-fill" style="width:${val}%;background:${ragC(val)}"></div></div>`}
+function proj(){return projects.find(p=>p.id===activeId)||projects[0]||null}
+
+// ═══════════════════════════════════════════════════════
+// IA — chaves e chamadas
+// ═══════════════════════════════════════════════════════
+function getKey(provider){return localStorage.getItem("pma_key_"+provider)||""}
+function setKey(provider,key){if(key)localStorage.setItem("pma_key_"+provider,key);else localStorage.removeItem("pma_key_"+provider)}
+function getModel(provider){return localStorage.getItem("pma_model_"+provider)||PROVIDERS[provider]?.model||""}
+function setModel(provider,model){
+  if(model&&model!==PROVIDERS[provider]?.model) localStorage.setItem("pma_model_"+provider,model);
+  else localStorage.removeItem("pma_model_"+provider);
+}
+
+function activeProvider(){
+  // retorna o primeiro provider que tem key salva, ou o selecionado na config
+  const saved=localStorage.getItem("pma_active_provider")||"claude";
+  return getKey(saved)?saved:Object.keys(PROVIDERS).find(k=>getKey(k))||null;
+}
+
+function updateAIPill(){
+  const p=activeProvider();
+  const pill=q("ai-pill"),lbl=q("ai-label");
+  if(p){pill.className="ok";lbl.textContent="IA: "+PROVIDERS[p].name}
+  else{pill.className="warn";lbl.textContent="IA: configurar"}
+}
+
+// Gemini embeds model name in the URL — update dynamically
+function updateGeminiUrl(){
+  const m=getModel("gemini");
+  PROVIDERS.gemini.url=`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent`;
+}
+
+async function callAI(systemPrompt, userMsg, maxTokens=1000){
+  const p=activeProvider();
+  if(!p)throw new Error("Nenhuma API key configurada. Clique em 'IA: configurar' no topo.");
+  const key=getKey(p);
+  const model=getModel(p);  // usa modelo salvo (pode ser customizado)
+  const cfg=PROVIDERS[p];
+
+  if(p==="claude"){
+    const res=await fetch(cfg.url,{method:"POST",headers:{"Content-Type":"application/json","x-api-key":key,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
+      body:JSON.stringify({model,max_tokens:maxTokens,system:systemPrompt,messages:[{role:"user",content:userMsg}]})});
+    if(!res.ok){const e=await res.json();throw new Error(e.error?.message||"Erro Claude "+res.status)}
+    const d=await res.json();return d.content?.[0]?.text||"";
+  }
+
+  if(p==="gemini"){
+    updateGeminiUrl();
+    const url=PROVIDERS.gemini.url+"?key="+key;
+    const res=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({contents:[{parts:[{text:systemPrompt+"\n\n"+userMsg}]}],generationConfig:{maxOutputTokens:maxTokens}})});
+    if(!res.ok){const e=await res.json();throw new Error(e.error?.message||"Erro Gemini "+res.status)}
+    const d=await res.json();return d.candidates?.[0]?.content?.parts?.[0]?.text||"";
+  }
+
+  if(p==="openai"){
+    const res=await fetch(cfg.url,{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+key},
+      body:JSON.stringify({model,max_tokens:maxTokens,messages:[{role:"system",content:systemPrompt},{role:"user",content:userMsg}]})});
+    if(!res.ok){const e=await res.json();throw new Error(e.error?.message||"Erro OpenAI "+res.status)}
+    const d=await res.json();return d.choices?.[0]?.message?.content||"";
+  }
+
+  throw new Error("Provider desconhecido: "+p);
+}
+
+// ─── UI de configuração de IA ─────────────────────────────────────────────────
+function selectProvider(p){
+  aiProvider=p;
+  document.querySelectorAll(".provider-card").forEach(c=>c.classList.remove("selected"));
+  q("pc-"+p)?.classList.add("selected");
+  const cfg=PROVIDERS[p];
+  q("key-label").textContent=cfg.keyLabel;
+  q("key-link").href=cfg.hint;
+  q("key-link").textContent="Obter key — "+cfg.name;
+  // Key field
+  const existing=getKey(p);
+  const inp=q("ai-key-inp");
+  inp.value=existing?"●".repeat(24):"";
+  inp.dataset.filled=existing?"1":"0";
+  inp.type="password";
+  // Model field
+  const modelInp=q("ai-model-inp");
+  if(modelInp){
+    modelInp.value=getModel(p);
+    modelInp.placeholder=cfg.model;
+    const hint=q("ai-model-hint");
+    if(hint) hint.textContent="Padrão: "+cfg.model;
+  }
+  renderKeysStatus();
+}
+
+function toggleKeyVis(){
+  const inp=q("ai-key-inp");
+  if(inp.dataset.filled==="1"){inp.value="";inp.dataset.filled="0";}
+  inp.type=inp.type==="password"?"text":"password";
+}
+
+function onKeyInpInput(){
+  const inp=q("ai-key-inp");
+  if(inp.value.includes("●")) inp.value="";
+  inp.dataset.filled="0";
+}
+
+function resetModel(){
+  localStorage.removeItem("pma_model_"+aiProvider);
+  const inp=q("ai-model-inp");
+  if(inp){inp.value=PROVIDERS[aiProvider].model;}
+  toast("Modelo restaurado: "+PROVIDERS[aiProvider].model);
+  renderKeysStatus();
+}
+
+function saveKey(){
+  const inp=q("ai-key-inp");
+  const val=inp.value.trim();
+  if(!val){toast("Cole ou digite sua API key no campo.","err");return}
+  if(val.replace(/●/g,"").length===0){toast("Clique no 👁 para editar ou cole uma nova key.","err");return}
+  setKey(aiProvider,val);
+  // Salva modelo customizado se preenchido
+  const modelInp=q("ai-model-inp");
+  if(modelInp){
+    const modelVal=modelInp.value.trim();
+    setModel(aiProvider,modelVal||PROVIDERS[aiProvider].model);
+  }
+  localStorage.setItem("pma_active_provider",aiProvider);
+  inp.value="●".repeat(24);
+  inp.dataset.filled="1";
+  inp.type="password";
+  // Atualiza URL do Gemini se modelo mudou
+  updateGeminiUrl();
+  toast("✓ Configuração salva para "+PROVIDERS[aiProvider].name+"!");
+  renderKeysStatus();updateAIPill();
+}
+
+function clearKey(){
+  setKey(aiProvider,"");
+  setModel(aiProvider,"");
+  const inp=q("ai-key-inp");
+  inp.value="";inp.dataset.filled="0";
+  const modelInp=q("ai-model-inp");
+  if(modelInp) modelInp.value=PROVIDERS[aiProvider].model;
+  toast("Configuração removida.");
+  renderKeysStatus();updateAIPill();
+}
+
+function renderKeysStatus(){
+  if(!q("keys-status")) return;
+  q("keys-status").innerHTML=Object.entries(PROVIDERS).map(([k,v])=>{
+    const has=!!getKey(k);
+    const savedModel=localStorage.getItem("pma_model_"+k);
+    const modelLabel=savedModel||v.model;
+    const isCustom=!!savedModel&&savedModel!==v.model;
+    return`<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:3px 0;flex-wrap:wrap">
+      <div>
+        <span style="font-size:12px;font-weight:600">${v.name}</span>
+        <span style="font-size:10px;margin-left:6px;font-family:monospace;color:${isCustom?"#7c3aed":"#94a3b8"}">${modelLabel}${isCustom?" ✎":""}</span>
+      </div>
+      <span class="key-status ${has?"saved":"missing"}">${has?"✓ Salva":"Não configurada"}</span>
+    </div>`;
+  }).join("");
+}
+
+// ═══════════════════════════════════════════════════════
+// PERSISTÊNCIA localStorage
+// ═══════════════════════════════════════════════════════
+function save(){const p=proj();if(p)p.updated=today();localStorage.setItem("pma_v3",JSON.stringify(projects));localStorage.setItem("pma_aid",activeId)}
+function load(){
+  try{const r=localStorage.getItem("pma_v3");if(r){projects=JSON.parse(r);activeId=localStorage.getItem("pma_aid")||projects[0]?.id}}catch{}
+  if(!projects.length){projects=[mkDefault()];activeId=projects[0].id}
+  if(!activeId||!projects.find(p=>p.id===activeId))activeId=projects[0]?.id;
+}
+function mkDefault(){
+  return{id:"p1",name:"OKR T — BI de Controle da Receita",context:"SEFA/PR · DTE-CMF · PROFISCO II",status:"em andamento",deadline:"2026-03-31",phase:"Execução",sponsor:"Chaiana",methodology:"EasyPMDOC",created:today(),updated:today(),
+    okrs:[{id:"o1",objective:"Entregar dashboard de controle da receita operacional",keyResults:[{id:"kr1",text:"Dashboard Power BI publicado e validado",progress:70},{id:"kr2",text:"Fontes SIAFIC integradas",progress:85},{id:"kr3",text:"Apresentação ao TCE-PR aprovada",progress:20}]}],
+    log:[{id:"l1",date:"2026-03-20",type:"marco",text:"Protótipo do dashboard entregue para validação interna.",author:"Julio Moreira"},{id:"l2",date:"2026-03-22",type:"risco",text:"Acesso ao ambiente de produção do SIAFIC ainda pendente com a TI.",author:"Julio Moreira"}],
+    risks:[{id:"r1",desc:"Acesso SIAFIC pendente com TI",prob:"Alta",impact:"Alto",status:"aberto"}],
+    milestones:[{id:"m1",name:"Prova de Conceito",date:"2025-09-30",status:"concluído"},{id:"m2",name:"Validação piloto",date:"2025-12-31",status:"concluído"},{id:"m3",name:"Implantação produção",date:"2026-03-31",status:"em andamento"}],
+    tasks:[],artefatos:{}};
+}
+
+// ═══════════════════════════════════════════════════════
+// FILE SYSTEM ACCESS API + IndexedDB (persiste o handle)
+// ═══════════════════════════════════════════════════════
+
+// Abre (ou cria) o banco IndexedDB para guardar o handle
+function idbOpen(){
+  return new Promise((res,rej)=>{
+    const req=indexedDB.open("pma_fs",1);
+    req.onupgradeneeded=e=>e.target.result.createObjectStore("handles");
+    req.onsuccess=e=>res(e.target.result);
+    req.onerror=e=>rej(e.target.error);
+  });
+}
+async function idbSaveHandle(h){
+  try{const db=await idbOpen();const tx=db.transaction("handles","readwrite");tx.objectStore("handles").put(h,"folder");await new Promise((r,j)=>{tx.oncomplete=r;tx.onerror=j});}catch{}
+}
+async function idbLoadHandle(){
+  try{const db=await idbOpen();return await new Promise((res,rej)=>{const tx=db.transaction("handles","readonly");const req=tx.objectStore("handles").get("folder");req.onsuccess=()=>res(req.result||null);req.onerror=()=>res(null);});}catch{return null;}
+}
+async function idbClearHandle(){
+  try{const db=await idbOpen();const tx=db.transaction("handles","readwrite");tx.objectStore("handles").delete("folder");}catch{}
+}
+
+function showFolderBar(name){
+  q("folder-bar").style.display="flex";
+  q("folder-name").textContent=name;
+}
+
+async function restoreFolder(){
+  // Tenta restaurar handle salvo; pede permissão se necessário
+  const h=await idbLoadHandle();
+  if(!h)return;
+  try{
+    // verifyPermission tenta silenciosamente; se não tiver permissão retorna false
+    const perm=await h.queryPermission({mode:"readwrite"});
+    if(perm==="granted"){
+      folderHandle=h;showFolderBar(h.name);
+      loadMetodologiaSkill().then(s=>{metodologiaSkill=s;});
+      return;
+    }
+    // permissão precisa ser re-solicitada com gesto do usuário — mostra aviso na folder-bar
+    folderHandle=h; // guarda para o botão "Reconectar" usar
+    q("folder-bar").style.display="flex";
+    q("folder-name").innerHTML=`<span style="color:#92400e">📁 ${h.name} — <button onclick="reconnectFolder()" style="background:transparent;border:none;cursor:pointer;color:#1e6efb;font-weight:600;font-size:12px">Clique para reconectar</button></span>`;
+  }catch{}
+}
+
+async function reconnectFolder(){
+  if(!folderHandle)return;
+  try{
+    const perm=await folderHandle.requestPermission({mode:"readwrite"});
+    if(perm==="granted"){
+      showFolderBar(folderHandle.name);
+      toast(`Pasta "${folderHandle.name}" reconectada!`);
+    }
+  }catch(e){if(e.name!=="AbortError")toast("Erro: "+e.message,"err")}
+}
+
+async function pickFolder(){
+  if(!window.showDirectoryPicker){toast("Use Chrome ou Edge para este recurso.","err");return}
+  try{
+    folderHandle=await window.showDirectoryPicker({mode:"readwrite"});
+    await idbSaveHandle(folderHandle);
+    showFolderBar(folderHandle.name);
+    metodologiaSkill = await loadMetodologiaSkill();
+    toast(`Pasta "${folderHandle.name}" mapeada e salva!`);
+    await saveToFolder();
+  }catch(e){if(e.name!=="AbortError")toast("Erro: "+e.message,"err")}
+}
+
+async function saveToFolder(){
+  if(!folderHandle){toast("Mapeie uma pasta primeiro.","err");return}
+  // Garante permissão antes de gravar
+  try{
+    const perm=await folderHandle.queryPermission({mode:"readwrite"});
+    if(perm!=="granted"){
+      const req=await folderHandle.requestPermission({mode:"readwrite"});
+      if(req!=="granted"){toast("Permissão negada para a pasta.","err");return}
+    }
+  }catch{}
+  const p=proj();if(!p)return;
+  try{
+    const fn=slug(p.name)+".json";
+    const fh=await folderHandle.getFileHandle(fn,{create:true});
+    const ws=await fh.createWritable();await ws.write(JSON.stringify(p,null,2));await ws.close();
+    const ts=new Date().toLocaleString("pt-BR");
+    q("sync-bar").style.display="flex";
+    q("sync-txt").textContent=`Salvo em "${folderHandle.name}/${fn}" · ${ts}`;
+    toast("Salvo em "+fn);
+  }catch(e){toast("Erro ao salvar: "+e.message,"err")}
+}
+
+async function loadFromFolder(){
+  if(!folderHandle){await pickFolder();return}
+  try{
+    const perm=await folderHandle.queryPermission({mode:"readwrite"});
+    if(perm!=="granted"){await folderHandle.requestPermission({mode:"readwrite"});}
+    let n=0;
+    for await(const[name,handle]of folderHandle.entries()){
+      if(!name.endsWith(".json"))continue;
+      try{
+        const file=await handle.getFile();
+        const data=JSON.parse(await file.text());
+        if(!data.name)continue;if(!data.id)data.id=uid();
+        const idx=projects.findIndex(p=>p.id===data.id);
+        if(idx>=0)projects[idx]=data;else projects.push(data);n++;
+      }catch{}
+    }
+    if(!n){toast("Nenhum JSON encontrado.","err");return}
+    activeId=projects[0].id;save();renderAll();toast(n+" projeto(s) carregado(s).");
+  }catch(e){toast("Erro: "+e.message,"err")}
+}
+
+// ═══════════════════════════════════════════════════════
+// BACKUP MANUAL
+// ═══════════════════════════════════════════════════════
+function exportJSON(){
+  const p=proj();if(!p)return;
+  const blob=new Blob([JSON.stringify(p,null,2)],{type:"application/json"});
+  const url=URL.createObjectURL(blob);const a=document.createElement("a");
+  a.href=url;a.download=slug(p.name)+"-"+today()+".json";a.click();URL.revokeObjectURL(url);toast("JSON exportado!");
+}
+function importJSON(inp){
+  const file=inp.files?.[0];if(!file)return;
+  const r=new FileReader();
+  r.onload=ev=>{try{const data=JSON.parse(ev.target.result);if(!data.name)throw 0;
+    if(!data.id)data.id=uid();
+    // Garante campos obrigatórios que podem estar ausentes em JSONs gerados por IA
+    data.tasks    = data.tasks    || [];
+    data.artefatos= data.artefatos|| {};
+    data.okrs     = data.okrs     || [];
+    data.log      = data.log      || [];
+    data.risks    = data.risks    || [];
+    data.milestones=data.milestones|| [];
+    // Preserva tasks existentes se o JSON importado não tiver (merge por ID)
+    const idx=projects.findIndex(p=>p.id===data.id);
+    if(idx>=0){
+      if(!data.tasks?.length && projects[idx].tasks?.length)
+        data.tasks=projects[idx].tasks; // preserva tarefas locais
+      projects[idx]=data;
+    } else projects.push(data);
+    activeId=data.id;save();renderAll();toast(`Importado: "${data.name}"`);closeModal("m-backup");
+  }catch{toast("Arquivo inválido.","err")}};
+  r.readAsText(file);inp.value="";
+}
+
+// ═══════════════════════════════════════════════════════
+// SCHEMA
+// ═══════════════════════════════════════════════════════
+function copySchema(){
+  const prompt=`Você é um assistente especializado em gestão de projetos. Sua tarefa é me ajudar a criar o arquivo JSON de um projeto para o PM Agent iDVL.
+
+## O que você deve fazer
+
+1. Me faça as perguntas necessárias para coletar as informações do projeto (pode ser em etapas)
+2. Com base nas minhas respostas, gere um JSON válido seguindo EXATAMENTE o schema abaixo
+3. O JSON deve estar completo, sem campos faltando, pronto para importar no PM Agent
+
+## Regras importantes
+
+- Todos os campos de data devem estar no formato YYYY-MM-DD
+- IDs devem ser strings únicas curtas (ex: "p1", "o1", "kr1", "l1", "r1", "m1")
+- O campo "progress" dos Key Results deve ser um número inteiro de 0 a 100
+- O campo "type" do log deve ser exatamente um dos valores: atualizacao, decisao, acao, marco, risco, blocker, reuniao, licao
+- O campo "status" dos riscos deve ser: aberto ou mitigado
+- O campo "status" dos milestones deve ser: pendente, em andamento, concluído ou cancelado
+- O campo "status" do projeto deve ser: em andamento, concluído, pausado ou em risco
+- O campo "phase" deve ser: Iniciação, Planejamento, Execução, Monitoramento ou Encerramento
+- Responda APENAS com o JSON puro, sem blocos de código markdown, sem explicações antes ou depois
+
+## Perguntas para coletar as informações
+
+Comece perguntando:
+1. Qual é o nome do projeto?
+2. Qual o contexto / órgão / programa? (ex: SEFA/PR · DTE-CMF · PROFISCO II)
+3. Qual é o patrocinador do projeto?
+4. Qual o prazo de entrega?
+5. Em qual fase está? (Iniciação / Planejamento / Execução / Monitoramento / Encerramento)
+6. Quais são os Objetivos (O) e seus Key Results (KR) com % de progresso atual?
+7. Há riscos identificados? Descreva com probabilidade e impacto.
+8. Quais são os marcos do projeto com datas previstas?
+9. Há registros de log para incluir? (decisões, reuniões, ações, bloqueios etc.)
+
+## Schema JSON que deve ser seguido
+
+${JSON.stringify(SCHEMA_DISPLAY,null,2)}
+
+---
+Comece fazendo as perguntas para coletar as informações do projeto.`;
+  navigator.clipboard.writeText(prompt).then(()=>{
+    toast("Prompt copiado! Cole em qualquer IA para criar seu projeto.");
+  }).catch(()=>{
+    // fallback para navegadores sem clipboard API
+    const ta=document.createElement("textarea");
+    ta.value=prompt;ta.style.position="fixed";ta.style.opacity="0";
+    document.body.appendChild(ta);ta.select();
+    document.execCommand("copy");
+    document.body.removeChild(ta);
+    toast("Prompt copiado! Cole em qualquer IA para criar seu projeto.");
+  });
+}
+function renderSchema(){
+  q("schema-out").textContent=JSON.stringify(SCHEMA_DISPLAY,null,2);
+}
+
+// ═══════════════════════════════════════════════════════
+// NAVEGAÇÃO
+// ═══════════════════════════════════════════════════════
+function setView(v,btn){
+  view=v;document.querySelectorAll("nav button").forEach(b=>b.classList.remove("active"));
+  if(btn)btn.classList.add("active");
+  else{
+    const views=["dashboard","okr","log","riscos","marcos","artefatos","tarefas","calendario"];
+    const idx=views.indexOf(v);
+    document.querySelectorAll("nav button")[idx]?.classList.add("active");
+  }
+  render();
+}
+function switchProject(id){activeId=id;save();render()}
+function renderSelector(){
+  q("proj-sel").innerHTML=projects.map(p=>`<option value="${p.id}"${p.id===activeId?" selected":""}>${p.name.length>26?p.name.slice(0,26)+"…":p.name}</option>`).join("");
+}
+function renderAll(){renderSelector();render()}
+
+// ═══════════════════════════════════════════════════════
+// RENDER VIEWS
+// ═══════════════════════════════════════════════════════
+function render(){
+  const p=proj();
+  if(!p&&view!=="calendario"){q("content").innerHTML=`<div class="empty"><div class="empty-icon">📂</div><p>Nenhum projeto. Clique "+ Projeto".</p></div>`;return}
+  ({dashboard:renderDashboard,okr:renderOKR,log:renderLog,riscos:renderRiscos,marcos:renderMarcos,artefatos:renderArtefatos,tarefas:renderTarefas,calendario:renderCalendario})[view]?.(p);
+  updateTaskBadge();
+}
+
+function renderDashboard(p){
+  const pg=calcProg(p.okrs),dl=daysLeft(p.deadline),sc=STATUS_CFG[p.status]||STATUS_CFG["em andamento"];
+  q("content").innerHTML=`
+  <div class="stack">
+    <div class="card">
+      <div class="flex-bet" style="margin-bottom:14px;flex-wrap:wrap;gap:10px">
+        <div style="flex:1;min-width:140px">
+          <h2 style="font-size:16px;font-weight:700;margin-bottom:3px">${p.name}</h2>
+          <div style="font-size:12px;color:#64748b">${p.context||""}</div>
+          ${p.sponsor?`<div style="font-size:11px;color:#94a3b8;margin-top:2px">Patrocinador: ${p.sponsor}</div>`:""}
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px">
+          <span class="badge" style="color:${sc.color};background:${sc.bg}">${p.status.toUpperCase()}</span>
+          <span style="font-size:11px;color:${dl!==null&&dl<=7?"#dc2626":"#64748b"};font-weight:${dl!==null&&dl<=7?700:400}">${dl!==null?dl+"d restantes · ":""}${fmtDate(p.deadline)}</span>
+          <span style="font-size:11px;color:#94a3b8">Fase: ${p.phase}</span>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="flex:1">${bar(pg)}</div>
+        <span style="font-size:20px;font-weight:700;color:${ragC(pg)};min-width:42px;text-align:right">${pg}%</span>
+      </div>
+      <div style="font-size:11px;color:#94a3b8;margin-top:4px">${ragL(pg)} · progresso médio dos Key Results</div>
+    </div>
+    <div class="g4">
+      <div class="metric"><div class="metric-val" style="color:#1e6efb">${p.okrs?.length||0}</div><div class="metric-lbl">OKRs</div></div>
+      <div class="metric"><div class="metric-val" style="color:#7c3aed">${(p.okrs||[]).flatMap(o=>o.keyResults||[]).length}</div><div class="metric-lbl">Key Results</div></div>
+      <div class="metric"><div class="metric-val" style="color:#0891b2">${p.log?.length||0}</div><div class="metric-lbl">Log entries</div></div>
+      <div class="metric"><div class="metric-val" style="color:#d97706">${(p.risks||[]).filter(r=>r.status==="aberto").length}</div><div class="metric-lbl">Riscos abertos</div></div>
+    </div>
+    <div class="card">
+      <div class="flex-bet" style="margin-bottom:10px">
+        <span class="card-title" style="margin:0">Últimos acontecimentos</span>
+        <button class="btn btn-ghost" onclick="setView('log')">Ver todos →</button>
+      </div>
+      ${(p.log||[]).slice(-5).reverse().map(e=>`
+        <div style="display:flex;gap:9px;padding:6px 0;border-bottom:1px solid #f8fafc;align-items:flex-start">
+          ${badge(e.type)}<div style="flex:1;font-size:12px;color:#374151;line-height:1.5">${e.text}</div>
+          <div style="font-size:11px;color:#94a3b8;white-space:nowrap">${fmtDate(e.date)}</div>
+        </div>`).join("")||`<p style="font-size:13px;color:#94a3b8;text-align:center;padding:12px 0">Vá para a aba Log para registrar.</p>`}
+    </div>
+    <div class="g3">
+      <button class="btn btn-dark" style="justify-content:center" onclick="generateReport()">📄 Status Report IA</button>
+      <button class="btn btn-secondary" style="justify-content:center" onclick="exportJSON()">⬇ Exportar JSON</button>
+      ${folderHandle?`<button class="btn btn-green" style="justify-content:center" onclick="saveToFolder()">💾 Salvar na Pasta</button>`
+        :`<button class="btn btn-secondary" style="justify-content:center" onclick="openModal('m-folder')">📁 Mapear Pasta</button>`}
+    </div>
+  </div>`;
+}
+
+function renderOKR(p){
+  q("content").innerHTML=`
+  <div class="stack">
+    <div class="flex-bet"><span style="font-size:14px;font-weight:700">OKRs</span><button class="btn btn-primary btn-sm" onclick="addOKR()">+ Objetivo</button></div>
+    ${(p.okrs||[]).map(o=>{
+      const op=o.keyResults?.length?Math.round(o.keyResults.reduce((s,k)=>s+(k.progress||0),0)/o.keyResults.length):0;
+      return`<div class="card">
+        <div class="flex-bet" style="margin-bottom:10px">
+          <div style="flex:1;padding-right:10px">
+            <div style="font-size:10px;font-weight:700;color:#1e6efb;text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px">Objetivo</div>
+            <div style="font-size:14px;font-weight:600">${o.objective}</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+            <span id="op-${o.id}" style="font-size:18px;font-weight:700;color:${ragC(op)}">${op}%</span>
+            <button class="btn btn-secondary btn-sm" onclick="addKR('${o.id}')">+ KR</button>
+            <button class="btn btn-sm" title="Editar objetivo" style="background:#f1f5f9;color:#475569;border:1px solid #e2e8f0;padding:5px 7px" onclick="editOKR('${o.id}')">✏️</button>
+            <button class="btn btn-sm" title="Excluir objetivo" style="background:#fee2e2;color:#dc2626;border:1px solid #fca5a5;padding:5px 7px" onclick="delOKR('${o.id}')">🗑</button>
+          </div>
+        </div>
+        <div style="margin-bottom:10px">${bar(op)}</div>
+        ${(o.keyResults||[]).map(kr=>`
+          <div class="kr-row">
+            <div style="flex:1;font-size:13px;color:#374151">${kr.text}</div>
+            <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+              <input type="range" min="0" max="100" data-val="${kr.progress}" data-okr="${o.id}" data-kr="${kr.id}"
+                style="width:100px;cursor:pointer" class="kr-range"
+                oninput="updKR('${o.id}','${kr.id}',+this.value,this)">
+              <span id="kp-${kr.id}" style="font-size:12px;font-weight:700;color:${ragC(kr.progress)};min-width:34px;text-align:right">${kr.progress}%</span>
+              <button title="Editar KR" style="background:transparent;border:none;cursor:pointer;font-size:13px;padding:2px 4px;color:#94a3b8" onclick="editKR('${o.id}','${kr.id}')">✏️</button>
+              <button title="Excluir KR" style="background:transparent;border:none;cursor:pointer;font-size:13px;padding:2px 4px;color:#fca5a5" onclick="delKR('${o.id}','${kr.id}')">🗑</button>
+            </div>
+          </div>`).join("")}
+        ${!o.keyResults?.length?`<p style="font-size:12px;color:#94a3b8;margin-top:8px">Clique "+ KR" para adicionar.</p>`:""}
+      </div>`;
+    }).join("")}
+    ${!(p.okrs?.length)?`<div class="empty"><div class="empty-icon">🎯</div><p>Nenhum OKR. Clique "+ Objetivo".</p></div>`:""}
+  </div>`;
+  setTimeout(()=>{
+    document.querySelectorAll(".kr-range").forEach(inp=>{
+      const val=parseInt(inp.dataset.val)||0;
+      inp.value=val;
+      inp.style.accentColor=ragC(val);
+    });
+    (p.okrs||[]).forEach(o=>{
+      const op=o.keyResults?.length
+        ?Math.round(o.keyResults.reduce((s,k)=>s+(k.progress||0),0)/o.keyResults.length):0;
+      const el=document.getElementById("op-"+o.id);
+      if(el){el.textContent=op+"%";el.style.color=ragC(op);}
+    });
+  },0);
+}
+
+function renderLog(p){
+  const hasProv=!!activeProvider();
+  const isCP=logType==="checkpoint";
+  const tags=Object.entries(LOG_TYPES).map(([k,v])=>
+    `<button class="tag${k===logType?" active":""}" style="${k===logType?`color:${v.color};background:${v.bg};border-color:${v.color}`:""}" onclick="setLogType('${k}',this)">${v.label}</button>`
+  ).join("");
+
+  q("content").innerHTML=`
+  <div class="stack">
+    <div class="card">
+      <div class="card-title">Registrar acontecimento</div>
+      ${!hasProv?`<div class="info-box" style="background:#fef3c7;border:1px solid #fcd34d;margin-bottom:10px">
+        <div style="font-size:12px;color:#92400e">⚠️ IA não configurada. <button onclick="openModal('m-ai')" style="background:transparent;border:none;cursor:pointer;color:#1e6efb;font-size:12px;font-weight:600">Configurar →</button></div>
+      </div>`:""}
+      <div class="tag-row">${tags}</div>
+
+      ${isCP ? `
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div class="field">
+            <label style="color:#0f766e">✅ Progresso — o que avançou desde o último checkpoint?</label>
+            <textarea class="inp" id="cp-progresso" placeholder="Ex: Dashboard finalizado, integração SIAFIC 85% concluída…" style="min-height:60px"></textarea>
+          </div>
+          <div class="field">
+            <label style="color:#dc2626">🚧 Impedimentos — o que está travando?</label>
+            <textarea class="inp" id="cp-impedimentos" placeholder="Ex: Acesso ao ambiente de produção pendente com TI…" style="min-height:60px"></textarea>
+          </div>
+          <div class="field">
+            <label style="color:#7c3aed">🚀 Iniciativas — próximas ações planejadas</label>
+            <textarea class="inp" id="cp-iniciativas" placeholder="Ex: Agendar apresentação ao TCE-PR, finalizar documentação…" style="min-height:60px"></textarea>
+          </div>
+          <div class="field">
+            <label style="color:#d97706">🎯 Grau de confiança na entrega do projeto</label>
+            <div style="display:flex;align-items:center;gap:12px;margin-top:4px">
+              <input type="range" min="0" max="100" value="70" id="cp-confianca"
+                style="flex:1;accent-color:#d97706;cursor:pointer"
+                oninput="q('cp-confianca-lbl').textContent=this.value+'%';q('cp-confianca-lbl').style.color=ragC(+this.value)">
+              <span id="cp-confianca-lbl" style="font-size:15px;font-weight:700;color:${ragC(70)};min-width:40px">70%</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:10px;color:#94a3b8;margin-top:2px">
+              <span>🔴 Baixa</span><span>🟡 Média</span><span>🟢 Alta</span>
+            </div>
+          </div>
+        </div>
+        <div class="flex-bet" style="margin-top:10px">
+          <span style="font-size:11px;color:#94a3b8">Checkpoint registrado no histórico do Log</span>
+          <button class="btn btn-primary" id="log-btn" onclick="addCheckpoint()" style="background:#0f766e">
+            ${hasProv?"📍 Registrar Checkpoint + IA":"📍 Registrar Checkpoint"}
+          </button>
+        </div>
+      ` : `
+        <textarea class="inp" id="log-inp" placeholder="Descreva ${LOG_TYPES[logType]?.label.toLowerCase()}… (Ctrl+Enter)"
+          onkeydown="if(event.key==='Enter'&&(event.metaKey||event.ctrlKey))addLog()"></textarea>
+        <div class="flex-bet" style="margin-top:10px">
+          <span style="font-size:11px;color:#94a3b8">Ctrl+Enter para registrar</span>
+          <button class="btn btn-primary" id="log-btn" onclick="addLog()">
+            ${hasProv?"Registrar + Analisar IA":"Registrar"}
+          </button>
+        </div>
+      `}
+      <div class="agent-box" id="agent-box"><div class="agent-lbl">Agente IA</div><div id="agent-txt"></div></div>
+    </div>
+
+    ${(p.log||[]).slice().reverse().map(e=> e.type==="checkpoint" ? `
+      <div style="background:#fff;border-radius:12px;border:2px solid #99f6e4;padding:16px;margin-bottom:4px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="badge" style="color:#0f766e;background:#ccfbf1;font-size:11px">📍 CHECKPOINT</span>
+            ${e.confianca!=null?`<span style="font-size:11px;font-weight:700;padding:2px 9px;border-radius:99px;background:${ragC(e.confianca)}20;color:${ragC(e.confianca)};border:1px solid ${ragC(e.confianca)}40">🎯 Confiança: ${e.confianca}%</span>`:""}
+          </div>
+          <div style="font-size:11px;color:#94a3b8;text-align:right">
+            <div>${fmtDate(e.date)}</div>
+            <div style="color:#cbd5e1;margin-top:1px">${e.author||""}</div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          ${e.progresso?`<div>
+            <div style="font-size:10px;font-weight:700;color:#0f766e;text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px">✅ Progresso</div>
+            <div style="font-size:13px;color:#374151;line-height:1.55">${e.progresso}</div>
+          </div>`:""}
+          ${e.impedimentos?`<div style="border-top:1px solid #f0fdf4;padding-top:8px">
+            <div style="font-size:10px;font-weight:700;color:#dc2626;text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px">🚧 Impedimentos</div>
+            <div style="font-size:13px;color:#374151;line-height:1.55">${e.impedimentos}</div>
+          </div>`:""}
+          ${e.iniciativas?`<div style="border-top:1px solid #f0fdf4;padding-top:8px">
+            <div style="font-size:10px;font-weight:700;color:#7c3aed;text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px">🚀 Iniciativas</div>
+            <div style="font-size:13px;color:#374151;line-height:1.55">${e.iniciativas}</div>
+          </div>`:""}
+          ${e.iaAnalise?`<div style="background:#f0f7ff;border:1px solid #bfdbfe;border-radius:8px;padding:10px;margin-top:4px">
+            <div style="font-size:10px;font-weight:700;color:#1e6efb;text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px">Agente IA</div>
+            <div style="font-size:12px;color:#1e40af;line-height:1.55">${e.iaAnalise}</div>
+          </div>`:""}
+        </div>
+      </div>` : `
+      <div class="log-row">${badge(e.type)}
+        <div style="flex:1;font-size:13px;color:#374151;line-height:1.55">${e.text}</div>
+        <div class="log-meta"><div>${fmtDate(e.date)}</div><div style="color:#cbd5e1;margin-top:1px">${e.author||""}</div></div>
+      </div>`
+    ).join("")}
+    ${!(p.log?.length)?`<div class="empty"><div class="empty-icon">📋</div><p>Nenhum registro ainda.</p></div>`:""}
+  </div>`;
+}
+
+function renderRiscos(p){
+  const PROBS=["Baixa","Média","Alta"];
+  const IMPACTS=["Baixo","Médio","Alto"];
+  const STATUSES=["aberto","mitigado"];
+  const stCfg={aberto:{color:"#dc2626",bg:"#fee2e2"},mitigado:{color:"#0a8a5c",bg:"#e0f5ec"}};
+  q("content").innerHTML=`
+  <div class="stack">
+    <div class="flex-bet"><span style="font-size:14px;font-weight:700">Riscos — CRGP</span><button class="btn btn-danger btn-sm" onclick="addRisk()">+ Risco</button></div>
+    ${(p.risks||[]).map(r=>{const sc=stCfg[r.status]||stCfg.aberto;return`
+      <div class="risk-row" style="border:1px solid ${r.status==="aberto"?"#fca5a5":"#e2e8f0"}">
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:500;margin-bottom:8px">${r.desc}</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+            <label style="font-size:10px;color:#94a3b8;font-weight:600;text-transform:uppercase">Prob</label>
+            <select style="font-size:11px;border:1px solid #e2e8f0;border-radius:6px;padding:2px 6px;cursor:pointer" onchange="updRisk('${r.id}','prob',this.value)">
+              ${PROBS.map(v=>`<option${v===r.prob?" selected":""}>${v}</option>`).join("")}
+            </select>
+            <label style="font-size:10px;color:#94a3b8;font-weight:600;text-transform:uppercase;margin-left:4px">Impacto</label>
+            <select style="font-size:11px;border:1px solid #e2e8f0;border-radius:6px;padding:2px 6px;cursor:pointer" onchange="updRisk('${r.id}','impact',this.value)">
+              ${IMPACTS.map(v=>`<option${v===r.impact?" selected":""}>${v}</option>`).join("")}
+            </select>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">
+          <select style="font-size:11px;font-weight:700;border:1px solid ${sc.color}40;border-radius:8px;padding:3px 8px;color:${sc.color};background:${sc.bg};cursor:pointer" onchange="updRisk('${r.id}','status',this.value);render()">
+            ${STATUSES.map(s=>`<option value="${s}"${s===r.status?" selected":""}>${s.toUpperCase()}</option>`).join("")}
+          </select>
+          <div style="display:flex;gap:5px">
+            <button class="btn btn-sm" style="background:transparent;border:1px solid #e2e8f0;color:#475569;padding:4px 7px" title="Editar descrição" onclick="editRisk('${r.id}')">✏️</button>
+            <button class="btn btn-sm" style="background:transparent;border:1px solid #fca5a5;color:#dc2626;padding:4px 7px" title="Excluir risco" onclick="delRisk('${r.id}')">🗑</button>
+          </div>
+        </div>
+      </div>`;}).join("")}
+    ${!(p.risks?.length)?`<div class="empty"><div class="empty-icon">⚠️</div><p>Nenhum risco registrado.</p></div>`:""}
+  </div>`;
+}
+
+function renderMarcos(p){
+  const sc={concluído:{color:"#0a8a5c",bg:"#e0f5ec",dot:"#0a8a5c"},"em andamento":{color:"#1e6efb",bg:"#e8f0fe",dot:"#1e6efb"},pendente:{color:"#64748b",bg:"#f1f5f9",dot:"#cbd5e1"},cancelado:{color:"#dc2626",bg:"#fee2e2",dot:"#dc2626"}};
+  q("content").innerHTML=`
+  <div class="stack">
+    <div class="flex-bet"><span style="font-size:14px;font-weight:700">Marcos — CRO</span><button class="btn btn-primary btn-sm" onclick="addMarco()">+ Marco</button></div>
+    ${(p.milestones||[]).map(m=>{const c=sc[m.status]||sc.pendente;return`
+      <div class="ms-row">
+        <div style="width:12px;height:12px;border-radius:50%;background:${c.dot};flex-shrink:0"></div>
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:600">${m.name}</div>
+          <div style="font-size:11px;color:#94a3b8;margin-top:1px">${fmtDate(m.date)}</div>
+        </div>
+        <select style="font-size:12px;border:1px solid #e2e8f0;border-radius:7px;padding:4px 8px;color:${c.color};background:${c.bg};cursor:pointer" onchange="updMarco('${m.id}',this.value)">
+          ${MS_STATUS.map(s=>`<option value="${s}"${s===m.status?" selected":""}>${s}</option>`).join("")}
+        </select>
+        <button style="background:transparent;border:1px solid #e2e8f0;border-radius:7px;padding:4px 7px;cursor:pointer;color:#475569" title="Editar marco" onclick="editMarco('${m.id}')">✏️</button>
+        <button style="background:transparent;border:1px solid #fca5a5;border-radius:7px;padding:4px 7px;cursor:pointer;color:#dc2626" title="Excluir marco" onclick="delMarco('${m.id}')">🗑</button>
+      </div>`;}).join("")}
+    ${!(p.milestones?.length)?`<div class="empty"><div class="empty-icon">🏁</div><p>Nenhum marco cadastrado.</p></div>`:""}
+  </div>`;
+}
+
+// ═══════════════════════════════════════════════════════
+// MUTAÇÕES
+// ═══════════════════════════════════════════════════════
+function addProject(){
+  const name=q("np-name")?.value.trim();if(!name){toast("Informe o nome.","err");return}
+  const p={id:uid(),name,context:q("np-ctx")?.value.trim()||"",sponsor:q("np-spon")?.value.trim()||"",deadline:q("np-dl")?.value||"",phase:q("np-ph")?.value||"Execução",status:"em andamento",methodology:"EasyPMDOC",created:today(),updated:today(),okrs:[],log:[],risks:[],milestones:[],tasks:[]};
+  projects.push(p);activeId=p.id;save();renderAll();closeModal("m-new");toast(`Projeto "${p.name}" criado!`);
+  ["np-name","np-ctx","np-spon","np-dl"].forEach(id=>{const el=q(id);if(el)el.value=""});
+}
+function openEditProject(){
+  const p=proj();if(!p)return;
+  q("ep-name").value=p.name||"";
+  q("ep-ctx").value=p.context||"";
+  q("ep-spon").value=p.sponsor||"";
+  q("ep-dl").value=p.deadline||"";
+  q("ep-ph").value=p.phase||"Execução";
+  q("ep-status").value=p.status||"em andamento";
+  openModal("m-edit");
+}
+function saveEditProject(){
+  const p=proj();if(!p)return;
+  const name=q("ep-name")?.value.trim();if(!name){toast("O nome não pode ser vazio.","err");return}
+  p.name=name;
+  p.context=q("ep-ctx")?.value.trim()||"";
+  p.sponsor=q("ep-spon")?.value.trim()||"";
+  p.deadline=q("ep-dl")?.value||"";
+  p.phase=q("ep-ph")?.value||"Execução";
+  p.status=q("ep-status")?.value||"em andamento";
+  save();renderAll();closeModal("m-edit");toast("Projeto atualizado!");
+}
+function deleteProject(){
+  const p=proj();if(!p)return;
+  confirmUser("Excluir Projeto",`Excluir permanentemente o projeto "<strong>${p.name}</strong>"? Esta ação não pode ser desfeita.`,()=>{
+    projects=projects.filter(x=>x.id!==p.id);
+    activeId=projects[0]?.id||null;
+    save();renderAll();closeModal("m-edit");
+    toast(`Projeto excluído.`);
+  });
+}
+// ── Mini modal helpers (prompt/confirm bloqueados em iframe) ──────────────────
+let _miniCb=null;
+let _miniMode="confirm"; // "input" | "confirm"
+function miniClose(){q("m-mini").classList.remove("open");_miniCb=null;}
+function miniCancel(){miniClose();}
+function miniConfirm(){
+  if(_miniMode==="input"){
+    const v=q("mini-inp")?.value.trim();
+    if(!v){toast("Campo obrigatório.","err");return;}
+    const cb=_miniCb;miniClose();if(cb)cb(v);
+  } else {
+    const cb=_miniCb;miniClose();if(cb)cb();
+  }
+}
+
+function askUser(title,defaultVal,cb){
+  _miniCb=cb; _miniMode="input";
+  q("mini-title").textContent=title;
+  q("mini-body").innerHTML=`<input class="inp" id="mini-inp" value="${(defaultVal||"").replace(/"/g,"&quot;")}" style="width:100%" onkeydown="if(event.key==='Enter')miniConfirm()">`;
+  q("mini-btns").innerHTML=`<button class="btn btn-secondary" onclick="miniCancel()">Cancelar</button><button class="btn btn-primary" onclick="miniConfirm()">OK</button>`;
+  q("m-mini").classList.add("open");
+  setTimeout(()=>{const el=q("mini-inp");if(el){el.focus();el.select();}},50);
+}
+
+function confirmUser(title,msg,cb){
+  _miniCb=cb; _miniMode="confirm";
+  q("mini-title").textContent=title;
+  q("mini-body").innerHTML=`<p style="font-size:13px;color:#374151;line-height:1.6">${msg}</p>`;
+  q("mini-btns").innerHTML=`<button class="btn btn-secondary" onclick="miniCancel()">Cancelar</button><button class="btn btn-danger" onclick="miniConfirm()">Excluir</button>`;
+  q("m-mini").classList.add("open");
+}
+
+// ── OKR / KR mutations ────────────────────────────────────────────────────────
+function addOKR(){
+  askUser("Novo Objetivo","",v=>{
+    const p=proj();if(!p)return;
+    p.okrs=p.okrs||[];
+    p.okrs.push({id:uid(),objective:v,keyResults:[]});
+    save();render();
+  });
+}
+function editOKR(oid){
+  const p=proj();if(!p)return;
+  const o=p.okrs.find(o=>o.id===oid);if(!o)return;
+  askUser("Editar Objetivo",o.objective,v=>{
+    o.objective=v;save();render();
+  });
+}
+function delOKR(oid){
+  const p=proj();if(!p)return;
+  const o=p.okrs.find(o=>o.id===oid);if(!o)return;
+  confirmUser("Excluir Objetivo",`Excluir "<strong>${o.objective}</strong>" e todos os seus Key Results? Esta ação não pode ser desfeita.`,()=>{
+    p.okrs=p.okrs.filter(x=>x.id!==oid);save();render();toast("Objetivo excluído.");
+  });
+}
+function addKR(oid){
+  askUser("Novo Key Result","",v=>{
+    const p=proj();if(!p)return;
+    const o=p.okrs.find(o=>o.id===oid);if(!o)return;
+    o.keyResults=o.keyResults||[];
+    o.keyResults.push({id:uid(),text:v,progress:0});
+    save();render();
+  });
+}
+function editKR(oid,kid){
+  const p=proj();if(!p)return;
+  const kr=(p.okrs.find(o=>o.id===oid)?.keyResults||[]).find(k=>k.id===kid);if(!kr)return;
+  askUser("Editar Key Result",kr.text,v=>{
+    kr.text=v;save();render();
+  });
+}
+function delKR(oid,kid){
+  const p=proj();if(!p)return;
+  const o=p.okrs.find(o=>o.id===oid);if(!o)return;
+  const kr=o.keyResults?.find(k=>k.id===kid);if(!kr)return;
+  confirmUser("Excluir Key Result",`Excluir "<strong>${kr.text}</strong>"?`,()=>{
+    o.keyResults=o.keyResults.filter(k=>k.id!==kid);save();render();toast("KR excluído.");
+  });
+}
+function addRisk(){
+  askUser("Descrição do risco","",v=>{
+    const p=proj();if(!p)return;
+    p.risks=p.risks||[];
+    p.risks.push({id:uid(),desc:v,prob:"Média",impact:"Médio",status:"aberto"});
+    save();render();
+  });
+}
+function addMarco(){
+  askUser("Nome do marco","",nome=>{
+    askUser("Data prevista (AAAA-MM-DD)",today(),data=>{
+      const p=proj();if(!p)return;
+      p.milestones=p.milestones||[];
+      p.milestones.push({id:uid(),name:nome,date:data,status:"pendente"});
+      save();render();
+    });
+  });
+}
+function updKR(oid,kid,val,inp){
+  const p=proj();if(!p)return;
+  const kr=(p.okrs.find(o=>o.id===oid)?.keyResults||[]).find(k=>k.id===kid);if(!kr)return;
+  kr.progress=val;const lbl=q("kp-"+kid);if(lbl){lbl.textContent=val+"%";lbl.style.color=ragC(val)}
+  if(inp)inp.style.accentColor=ragC(val);save();
+}
+function setLogType(t,btn){
+  logType=t;const cfg=LOG_TYPES[t]||LOG_TYPES.atualizacao;
+  document.querySelectorAll(".tag").forEach(b=>{b.classList.remove("active");b.style.cssText=""});
+  if(btn){btn.classList.add("active");btn.style.color=cfg.color;btn.style.background=cfg.bg;btn.style.borderColor=cfg.color}
+  // re-render para trocar entre form livre e form checkpoint
+  const p=proj();if(p)renderLog(p);
+}
+
+async function addCheckpoint(){
+  if(aiRunning)return;
+  const progresso=(q("cp-progresso")?.value||"").trim();
+  const impedimentos=(q("cp-impedimentos")?.value||"").trim();
+  const iniciativas=(q("cp-iniciativas")?.value||"").trim();
+  const confianca=parseInt(q("cp-confianca")?.value||70);
+  if(!progresso&&!impedimentos&&!iniciativas){toast("Preencha ao menos um campo.","err");return}
+  const p=proj();if(!p)return;
+  const entry={id:uid(),date:today(),type:"checkpoint",progresso,impedimentos,iniciativas,confianca,text:`Checkpoint: ${progresso||impedimentos||iniciativas}`,author:"Julio Moreira"};
+  p.log=p.log||[];p.log.push(entry);save();
+  const hasProv=!!activeProvider();
+  if(!hasProv){render();return}
+  const btn=q("log-btn");if(btn){btn.disabled=true;btn.textContent="Analisando…"}
+  const ab=q("agent-box");if(ab)ab.style.display="none";
+  aiRunning=true;
+  try{
+    const reply=await callAI(
+      "Agente PM do Julio Moreira (iDVL/SEFA-PR). Analise este checkpoint de projeto. Responda em 3-4 frases: destaque o avanço mais relevante, aponte o impedimento mais crítico e sugira 1 ação concreta para a próxima semana. Direto. Português BR.",
+      `Projeto: ${p.name}\nProgresso: ${progresso||"—"}\nImpedimentos: ${impedimentos||"—"}\nIniciativas: ${iniciativas||"—"}`
+    );
+    // salva análise dentro do próprio entry
+    entry.iaAnalise=reply;save();
+    if(ab){ab.style.display="block";const t=q("agent-txt");if(t)t.textContent=reply}
+  }catch(e){
+    if(ab){ab.style.display="block";const t=q("agent-txt");if(t)t.textContent="⚠️ "+e.message}
+  }
+  aiRunning=false;if(btn){btn.disabled=false;btn.textContent="📍 Registrar Checkpoint + IA"}
+  render();
+}
+let aiRunning=false;
+async function addLog(){
+  if(aiRunning)return;
+  const el=q("log-inp");if(!el)return;
+  const text=el.value.trim();if(!text)return;
+  const p=proj();if(!p)return;
+  p.log=p.log||[];p.log.push({id:uid(),date:today(),type:logType,text,author:"Julio Moreira"});
+  el.value="";save();
+  const hasProv=!!activeProvider();
+  if(!hasProv){render();return}
+  const btn=q("log-btn");if(btn){btn.disabled=true;btn.textContent="Analisando…"}
+  const ab=q("agent-box");if(ab)ab.style.display="none";
+  aiRunning=true;
+  try{
+    const reply=await callAI(
+      "Agente PM do Julio Moreira (iDVL/SEFA-PR). Analise o log. 2-3 frases: confirme, aponte ação/alerta, pergunte se há KR/risco/marco a atualizar. Direto. Português BR.",
+      `Projeto: ${p.name}\nTipo: ${LOG_TYPES[logType]?.label}\nRegistro: ${text}`
+    );
+    if(ab){ab.style.display="block";const t=q("agent-txt");if(t)t.textContent=reply}
+  }catch(e){
+    if(ab){ab.style.display="block";const t=q("agent-txt");if(t)t.textContent="⚠️ "+e.message}
+  }
+  aiRunning=false;if(btn){btn.disabled=false;btn.textContent="Registrar + Analisar IA"}
+  render();
+}
+function mitigar(id){const p=proj();if(!p)return;const r=p.risks?.find(r=>r.id===id);if(!r)return;r.status="mitigado";save();render()}
+function updRisk(id,field,val){const p=proj();if(!p)return;const r=p.risks?.find(r=>r.id===id);if(!r)return;r[field]=val;save();}
+function editRisk(id){
+  const p=proj();if(!p)return;
+  const r=p.risks?.find(r=>r.id===id);if(!r)return;
+  askUser("Editar descrição do risco",r.desc,v=>{r.desc=v;save();render();});
+}
+function delRisk(id){
+  const p=proj();if(!p)return;
+  const r=p.risks?.find(r=>r.id===id);if(!r)return;
+  confirmUser("Excluir Risco",`Excluir o risco "<strong>${r.desc}</strong>"?`,()=>{
+    p.risks=p.risks.filter(x=>x.id!==id);save();render();toast("Risco excluído.");
+  });
+}
+function updMarco(id,st){const p=proj();if(!p)return;const m=p.milestones?.find(m=>m.id===id);if(!m)return;m.status=st;save()}
+function editMarco(id){
+  const p=proj();if(!p)return;
+  const m=p.milestones?.find(m=>m.id===id);if(!m)return;
+  _miniCb=()=>{
+    const nome=q("mini-nome")?.value.trim();
+    const data=q("mini-data")?.value||"";
+    if(!nome){toast("Nome obrigatório.","err");return;}
+    m.name=nome;m.date=data;save();render();miniClose();
+  };
+  _miniMode="custom";
+  q("mini-title").textContent="Editar Marco";
+  q("mini-body").innerHTML=`
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div class="field"><label>Nome</label><input class="inp" id="mini-nome" value="${m.name.replace(/"/g,"&quot;")}"></div>
+      <div class="field"><label>Data prevista</label><input type="date" class="inp" id="mini-data" value="${m.date||""}"></div>
+    </div>`;
+  q("mini-btns").innerHTML=`<button class="btn btn-secondary" onclick="miniCancel()">Cancelar</button><button class="btn btn-primary" onclick="_miniCb()">Salvar</button>`;
+  q("m-mini").classList.add("open");
+  setTimeout(()=>q("mini-nome")?.focus(),50);
+}
+function delMarco(id){
+  const p=proj();if(!p)return;
+  const m=p.milestones?.find(m=>m.id===id);if(!m)return;
+  confirmUser("Excluir Marco",`Excluir o marco "<strong>${m.name}</strong>"?`,()=>{
+    p.milestones=p.milestones.filter(x=>x.id!==id);save();render();toast("Marco excluído.");
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+// REPORT
+// ═══════════════════════════════════════════════════════
+async function generateReport(){
+  const p=proj();if(!p)return;
+  if(!activeProvider()){toast("Configure a IA primeiro (botão no topo).","err");openModal("m-ai");return}
+  openModal("m-report");
+  const out=q("report-out"),btns=q("report-btns");
+  out.innerHTML=`<div style="display:flex;align-items:center;gap:10px;color:#64748b;padding:16px"><div class="spin"></div>Gerando com IA…</div>`;
+  if(btns)btns.style.display="none";
+  const pg=calcProg(p.okrs),dl=daysLeft(p.deadline);
+  const recentLog=(p.log||[]).slice(-15).map(l=>`[${l.date}] ${LOG_TYPES[l.type]?.label}: ${l.text}`).join("\n");
+  try{
+    reportMd=await callAI(
+      "Gere status report semanal em Markdown:\n# Status Report Semanal\n**Projeto:** | **Data:** dd/mm/aaaa | **Elaborado por:** Julio Moreira | **Fase:**\n## 1. Resumo Executivo\n## 2. Status Geral\n**RAG:** 🟢/🟡/🔴 | **Prazo:** | **OKR:** %\n## 3. OKRs e Key Results\n(tabela markdown)\n## 4. Acontecimentos da Semana\n## 5. Riscos\n## 6. Marcos\n## 7. Próximas Ações (Top 3)\n## 8. Encaminhamentos\nLinguagem formal órgãos públicos. SOMENTE o Markdown.",
+      `Projeto: ${p.name}\nContexto: ${p.context}\nPatrocinador: ${p.sponsor||"—"}\nFase: ${p.phase}\nStatus: ${p.status}\nPrazo: ${p.deadline} (${dl} dias)\nOKR: ${pg}%\nOKRs:\n${(p.okrs||[]).map(o=>`Objetivo: ${o.objective}\n${o.keyResults.map(k=>`  - ${k.text}: ${k.progress}%`).join("\n")}`).join("\n\n")}\nLog:\n${recentLog}\nRiscos:\n${(p.risks||[]).map(r=>`- ${r.desc}|${r.prob}|${r.impact}|${r.status}`).join("\n")}\nMarcos:\n${(p.milestones||[]).map(m=>`- ${m.name}|${m.date}|${m.status}`).join("\n")}`,
+      2000
+    );
+    out.textContent=reportMd;if(btns)btns.style.display="flex";
+  }catch(e){out.textContent="Erro: "+e.message}
+}
+function copyReport(){navigator.clipboard.writeText(reportMd);toast("Markdown copiado!")}
+
+// ═══════════════════════════════════════════════════════
+// ARTEFATOS
+// ═══════════════════════════════════════════════════════
+
+// Catálogo completo — Easy Life Canvas + EasyPMDOC
+const ARTEFATO_GRUPOS = [
+  { label: "🗺️ Easy Life Canvas", keys: ["canvas_elc"] },
+  { label: "📌 Iniciação",         keys: ["business_case","tap","tne"] },
+  { label: "📐 Planejamento",      keys: ["rpi","pepi","pgp","backlog","dep","eap","comunicacao","stakeholders","crgp"] },
+  { label: "⚙️ Execução / Monit.", keys: ["cro","rr","rq","rm","rla"] },
+  { label: "🏁 Encerramento",      keys: ["tae","tef","tep"] },
+  { label: "📝 Templates",         keys: ["nota_tecnica","tr"] },
+];
+
+const ARTEFATO_CFG = {
+  // Easy Life Canvas
+  canvas_elc:    { label:"Easy Life Canvas",               icon:"🗺️", color:"#7c3aed", bg:"#ede9fe", skillKey:"canvas_elc" },
+  // Iniciação
+  business_case: { label:"Business Case",                  icon:"💼", color:"#0f766e", bg:"#ccfbf1", skillKey:"business_case" },
+  tap:           { label:"TAP — Termo de Abertura",        icon:"📋", color:"#1e6efb", bg:"#e8f0fe", skillKey:"tap" },
+  tne:           { label:"TNE — Nomeação da Equipe",       icon:"👷", color:"#7c3aed", bg:"#ede9fe", skillKey:"tne" },
+  // Planejamento
+  rpi:           { label:"RPI — Partes Interessadas",      icon:"👥", color:"#0891b2", bg:"#e0f2fe", skillKey:"rpi" },
+  pepi:          { label:"PEPI — Plano de Engajamento",    icon:"🤝", color:"#be185d", bg:"#fce7f3", skillKey:"pepi" },
+  pgp:           { label:"PGP — Plano de Gerenciamento",   icon:"📊", color:"#d97706", bg:"#fef3c7", skillKey:"pgp" },
+  backlog:       { label:"DMRR / Product Backlog",         icon:"📝", color:"#1e6efb", bg:"#e8f0fe", skillKey:"backlog" },
+  dep:           { label:"DEP — Declaração do Escopo",     icon:"🎯", color:"#0a8a5c", bg:"#e0f5ec", skillKey:"dep" },
+  eap:           { label:"EAP — Estrutura Analítica",      icon:"🌳", color:"#7c3aed", bg:"#ede9fe", skillKey:"eap" },
+  comunicacao:   { label:"Plano de Comunicação",           icon:"📣", color:"#be185d", bg:"#fce7f3", skillKey:"comunicacao" },
+  stakeholders:  { label:"Matriz de Stakeholders",         icon:"🗂️", color:"#0891b2", bg:"#e0f2fe", skillKey:"stakeholders" },
+  crgp:          { label:"CRGP — Checklist de Riscos",     icon:"⚠️", color:"#dc2626", bg:"#fee2e2", skillKey:"crgp" },
+  // Execução
+  cro:           { label:"CRO — Cronograma e Marcos",      icon:"📅", color:"#0891b2", bg:"#e0f2fe", skillKey:"cro" },
+  rr:            { label:"RR — Registro dos Riscos",       icon:"🚨", color:"#dc2626", bg:"#fee2e2", skillKey:"rr" },
+  rq:            { label:"RQ — Registro de Questões",      icon:"❓", color:"#d97706", bg:"#fef3c7", skillKey:"rq" },
+  rm:            { label:"RM — Registro de Mudanças",      icon:"🔄", color:"#7c3aed", bg:"#ede9fe", skillKey:"rm" },
+  rla:           { label:"RLA — Lições Aprendidas",        icon:"💡", color:"#0a8a5c", bg:"#e0f5ec", skillKey:"rla" },
+  // Encerramento
+  tae:           { label:"TAE — Aceite da Entrega",        icon:"✅", color:"#0a8a5c", bg:"#e0f5ec", skillKey:"tae" },
+  tef:           { label:"TEF — Encerramento da Fase",     icon:"🏁", color:"#64748b", bg:"#f1f5f9", skillKey:"tef" },
+  tep:           { label:"TEP — Encerramento do Projeto",  icon:"🎓", color:"#0f766e", bg:"#ccfbf1", skillKey:"tep" },
+  // Templates customizados
+  nota_tecnica:  { label:"Nota Técnica",                   icon:"📄", color:"#475569", bg:"#f1f5f9", skillKey:"nota_tecnica" },
+  tr:            { label:"Termo de Referência (TR)",        icon:"📑", color:"#475569", bg:"#f1f5f9", skillKey:"tr" },
+};
+
+// Metodologia padrão embutida — baseada na skill pm-agent-metodologia (EasyBok + EasyPMDOC)
+const METODOLOGIA_PADRAO = "# Metodologia PM Agent iDVL — Easy Life Canvas + EasyPMDOC\n\n## Easy Life Canvas (canvas_elc)\nGere os 9 quadrantes do Easy Life Canvas em Markdown. Formato: seção por quadrante com 3-5 itens cada.\n0-OBJETIVOS: o que deve ser atingido ao final ou em entregas intermediárias.\n1-PORQUÊ: justificativas para executar o projeto.\n2-BENEFÍCIOS: valor entregue a clientes e participantes.\n3-QUEM: pessoas, grupos e empresas impactados ou que impactam.\n4-NECESSIDADES: expectativas de cada envolvido em relação ao projeto.\n5-O QUÊ (Entregas): entregas que representam o valor esperado.\n6-CONDIÇÕES: premissas, restrições e riscos que influenciam o projeto.\n7-COMO (Atividades/Recursos): atividades e recursos para cada entrega.\n8-QUANTO (Custos): estimativa de custos separada por tipo.\n\n## Business Case (business_case)\nSeções: 1-Necessidades/Problema/Propósito | 2-Sumário Executivo | 3-Recomendação | 4-Metas e Resultados | 5-Alternativas | 6-Premissas e Restrições.\n\n## TAP — Termo de Abertura (tap)\nSeções: 1-Finalidade | 2-Objetivos SMART e critérios de sucesso (um por objetivo) | 3-Requisitos alto nível | 4-Escopo/Limites/Entregas/Marcos | 5-Riscos alto nível | 6-Orçamento | 7-Partes interessadas | 8-Requisitos de aprovação | 9-GP e autoridade | 10-Patrocinador.\n\n## TNE — Nomeação da Equipe (tne)\nSeções: 1-Valores da equipe | 2-Diretrizes de comunicação | 3-Tomada de decisões | 4-Resolução de conflitos | 5-Diretrizes para reuniões | 6-Acordos da equipe (tabela: membro/papel/responsabilidade/disponibilidade).\n\n## RPI — Partes Interessadas (rpi)\nTabela: ID | Nome | Tipo | Organização | Posição | Papel | Responsabilidade | e-mail | Interesse | Influência.\n\n## PEPI — Plano de Engajamento (pepi)\nTabela: ID | Nome | Interesse(%) | Poder(%) | Influência(%) | Impacto(%) | Engajamento Atual | Engajamento Desejado | Estratégia.\nClassificações: Alheio | Resistente | Neutro | Apoiador | Engajado.\n\n## PGP — Plano de Gerenciamento (pgp)\nSeções: 1-Ciclo de Vida | 2-Ciclo de Desenvolvimento (preditivo/ágil/híbrido) | 3-Abordagens (PMBOK/Scrum/EasyPMDOC) | 4-Gestão do Conhecimento | 5-Gestão de Mudanças | 6-Governança | 7-Lições Aprendidas | 8-Métricas.\n\n## DMRR / Product Backlog (backlog)\nUser Stories: \\\"Como [perfil], quero [ação] para [benefício]\\\".\nTabela: ID | Épico | User Story | Critérios de Aceite | Prioridade MoSCoW | Esforço P/M/G | Status.\n\n## DEP — Declaração do Escopo (dep)\nSeções: 1-Descrição do escopo do produto | 2-Entregas (tabela com data) | 3-Critérios de aceitação | 4-Exclusões do projeto.\n\n## EAP — Estrutura Analítica (eap)\nLista hierárquica numerada (1.0 / 1.1 / 1.1.1). Nível 1: fases. Nível 2: entregas. Nível 3: pacotes de trabalho.\nInclua tabela: Código WBS | Descrição | Responsável | Prazo.\n\n## Plano de Comunicação (comunicacao)\nTabela: Público | Mensagem/Conteúdo | Canal | Frequência | Responsável | Objetivo.\n\n## Matriz de Stakeholders (stakeholders)\nTabela: Nome/Grupo | Papel | Interesse | Influência | Expectativas | Estratégia de engajamento.\n\n## CRGP — Checklist de Riscos (crgp)\nTabela por categoria (Estratégico/Regulatório/Técnico/Operacional): Aspecto | Peso | Grau(0-10) | Resultado | Obs.\nPontuação: Verde <30% | Amarelo 30-60% | Vermelho >60%.\n\n## CRO — Cronograma e Marcos (cro)\nTabela: ID | Atividade/Marco | Início | Duração(dias) | Término | Responsável | Status. Use os marcos do projeto.\n\n## RR — Registro dos Riscos (rr)\nTabela: ID | Evento | Tipo | Objetivo Impactado | Probabilidade | Impacto | Score | Estratégia(Evitar/Mitigar/Transferir/Aceitar) | Plano de Ação | Responsável | Status.\n\n## RQ — Registro de Questões (rq)\nTabela: ID | Questão | Data | Levantado por | Tipo | Responsável | Prazo | Status.\n\n## RM — Registro de Mudanças (rm)\nTabela: ID | Solicitante | Data | Tipo | Descrição | Impacto (Escopo/Prazo/Custo) | Status | Decisor.\n\n## RLA — Lições Aprendidas (rla)\nTabela: ID | Data | Identificado por | Fase | Situação | Categoria | Lição | Recomendação | Quem se beneficia.\n\n## TAE — Termo de Aceite da Entrega (tae)\nCampos: Nome da entrega | Validador | Cargo | Função | Data | Critérios verificados (checklist) | Comentários | Assinaturas.\n\n## TEF — Encerramento da Fase (tef)\nCampos: Nome da fase | Responsável | Principais entregas | Data | Desvios | Comentários | Assinaturas.\n\n## TEP — Encerramento do Projeto (tep)\nCampos: Cliente | Data | Mudanças aprovadas | Desvios | Lições aprendidas | Comentários cliente | Comentários patrocinador | Assinaturas.\n\n## Nota Técnica (nota_tecnica)\nCabeçalho: Nº | Data | Para | De | Assunto | Processo.\nSeções: 1-Objetivo | 2-Referências Legais | 3-Análise Técnica | 4-Conclusão e Recomendação | Assinatura.\n\n## Termo de Referência (tr)\nSeções: 1-Objeto | 2-Justificativa | 3-Especificações técnicas | 4-Estimativa de preços | 5-Obrigações | 6-Prazo/Forma de execução | 7-Critérios de aceitação | 8-Gestão e fiscalização | 9-Sanções.\n\n## Diretrizes gerais\n- Use linguagem formal adequada para órgãos públicos e de controle (TCE, BID, PROFISCO)\n- Contextualize SEMPRE com os dados reais do projeto\n- Outputs em Markdown com tabelas e listas estruturadas\n- Seja objetivo e completo";
+
+// Estado da skill e templates carregados da pasta
+let metodologiaSkill  = null;   // conteúdo de pm-agent-metodologia/SKILL.md
+let skillTemplates    = {};     // { nome_arquivo: conteúdo } de pm-agent-metodologia/references/templates/
+let skillCanvasRef    = null;   // conteúdo de references/artefatos/easy-life-canvas.md
+
+async function loadMetodologiaSkill() {
+  if (!folderHandle) return null;
+  try {
+    // Procura a pasta pm-agent-metodologia/
+    for await (const [name, handle] of folderHandle.entries()) {
+      if (name === "pm-agent-metodologia" && handle.kind === "directory") {
+        return await loadSkillFolder(handle);
+      }
+    }
+    // fallback: procura pm-agent-metodologia.md direto na raiz (versão antiga)
+    for await (const [name, handle] of folderHandle.entries()) {
+      if (name === "pm-agent-metodologia.md") {
+        const file = await handle.getFile();
+        return await file.text();
+      }
+    }
+  } catch(e) { console.error("loadMetodologiaSkill:", e); }
+  return null;
+}
+
+async function loadSkillFolder(skillDirHandle) {
+  let skillMd = null;
+  skillTemplates = {};
+  skillCanvasRef = null;
+  try {
+    // Lê SKILL.md
+    try {
+      const fh = await skillDirHandle.getFileHandle("SKILL.md");
+      skillMd = await (await fh.getFile()).text();
+    } catch {}
+
+    // Lê references/
+    try {
+      const refDir = await skillDirHandle.getDirectoryHandle("references");
+      // references/templates/
+      try {
+        const tmplDir = await refDir.getDirectoryHandle("templates");
+        for await (const [tname, thandle] of tmplDir.entries()) {
+          if (tname.endsWith(".md") && tname !== "LEIA-ME.md") {
+            const key = tname.replace(".md", "");
+            skillTemplates[key] = await (await thandle.getFile()).text();
+          }
+        }
+      } catch {}
+      // references/artefatos/easy-life-canvas.md
+      try {
+        const artDir = await refDir.getDirectoryHandle("artefatos");
+        const canvasFh = await artDir.getFileHandle("easy-life-canvas.md");
+        skillCanvasRef = await (await canvasFh.getFile()).text();
+      } catch {}
+    } catch {}
+  } catch(e) { console.error("loadSkillFolder:", e); }
+  return skillMd;
+}
+
+
+
+
+function renderArtefatos(p) {
+  const artefatos = p.artefatos || {};
+  const statusCfg = {
+    vazio:    { label:"Não gerado", color:"#94a3b8", bg:"#f1f5f9" },
+    rascunho: { label:"Rascunho",   color:"#d97706", bg:"#fef3c7" },
+    aprovado: { label:"Aprovado",   color:"#0a8a5c", bg:"#e0f5ec" },
+  };
+
+  const temSkill = !!metodologiaSkill;
+  const nTemplates = Object.keys(skillTemplates).length;
+
+  const skillBanner = temSkill
+    ? `<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:8px 14px;font-size:12px;color:#166534;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">
+        <span>✓ Skill carregada: <strong>pm-agent-metodologia/SKILL.md</strong>${nTemplates ? ` · ${nTemplates} template(s) customizado(s)` : ""}${skillCanvasRef ? " · Easy Life Canvas ref." : ""}</span>
+        <button class="btn btn-sm" style="background:#166534;color:#fff;border:none" onclick="reloadSkill()">🔄 Recarregar</button>
+       </div>`
+    : `<div style="background:#fef3c7;border:1px solid #fcd34d;border-radius:8px;padding:8px 14px;font-size:12px;color:#92400e;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">
+        <span>⚠️ Usando metodologia padrão embutida. Salve a pasta <strong>pm-agent-metodologia/</strong> na pasta mapeada e clique Recarregar.</span>
+        <div style="display:flex;gap:6px">
+          ${folderHandle ? `<button class="btn btn-sm" style="background:#d97706;color:#fff;border:none" onclick="exportarMetodologiaPadrao()">📥 Exportar skill padrão</button>` : ""}
+          <button class="btn btn-sm btn-secondary" onclick="reloadSkill()">🔄 Recarregar</button>
+        </div>
+       </div>`;
+
+  const artCards = ARTEFATO_GRUPOS.map(grupo => {
+    const cards = grupo.keys.map(key => {
+      const cfg = ARTEFATO_CFG[key];
+      if (!cfg) return "";
+      const art = artefatos[key] || { status:"vazio", conteudo:"" };
+      const sc  = statusCfg[art.status] || statusCfg.vazio;
+      const hasContent = !!art.conteudo;
+      const hasTemplate = !!skillTemplates[key];
+      return `
+      <div class="card" id="art-card-${key}" style="margin-bottom:10px">
+        <div class="flex-bet" style="margin-bottom:${hasContent ? 10 : 0}px;flex-wrap:wrap;gap:6px">
+          <div style="display:flex;align-items:center;gap:8px;min-width:0">
+            <span style="font-size:16px;flex-shrink:0">${cfg.icon}</span>
+            <div style="min-width:0">
+              <div style="font-size:13px;font-weight:700;color:#0f172a;display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+                ${cfg.label}
+                ${hasTemplate ? `<span style="font-size:9px;font-weight:700;padding:1px 6px;border-radius:99px;background:#e8f0fe;color:#1e6efb;letter-spacing:.04em">TEMPLATE</span>` : ""}
+              </div>
+              <span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:99px;color:${sc.color};background:${sc.bg}">${sc.label}${art.geradoEm ? " · " + new Date(art.geradoEm).toLocaleDateString("pt-BR") : ""}</span>
+            </div>
+          </div>
+          <div style="display:flex;gap:5px;align-items:center;flex-wrap:wrap;flex-shrink:0">
+            ${hasContent ? `
+              <button class="btn btn-sm" style="background:${cfg.bg};color:${cfg.color};border:1px solid ${cfg.color}40" onclick="toggleArtEdit('${key}')">✏️</button>
+              <div style="position:relative;display:inline-block">
+                <button class="btn btn-sm" style="background:#334155;color:#cbd5e1;border:1px solid #475569" onclick="toggleExportMenu('${key}')">⬇ Exportar</button>
+                <div id="exp-menu-${key}" style="display:none;position:absolute;right:0;top:100%;background:#fff;border:1px solid #e2e8f0;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.12);z-index:50;min-width:160px;overflow:hidden">
+                  ${[["📄 Word (.docx)","docx"],["📊 Excel (.xlsx)","xlsx"],["📑 PDF (.pdf)","pdf"],["📊 PPT (.pptx)","pptx"]].map(([lbl,fmt])=>
+                    `<button onclick="exportarArtefato('${key}','${fmt}')" style="display:block;width:100%;padding:9px 14px;text-align:left;background:transparent;border:none;cursor:pointer;font-size:12px;color:#374151;font-family:inherit" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='transparent'">${lbl}</button>`
+                  ).join("")}
+                </div>
+              </div>
+              <select style="font-size:11px;font-weight:700;border:1px solid #e2e8f0;border-radius:7px;padding:3px 7px;cursor:pointer;color:${sc.color};background:${sc.bg}" onchange="setArtStatus('${key}',this.value)">
+                <option value="rascunho"${art.status==="rascunho"?" selected":""}>Rascunho</option>
+                <option value="aprovado"${art.status==="aprovado"?" selected":""}>Aprovado</option>
+              </select>
+            ` : ""}
+            <button class="btn btn-sm" style="background:${cfg.color};color:#fff;border:none" onclick="gerarArtefato('${key}')" id="btn-gerar-${key}">
+              ${hasContent ? "↺ Regen." : "✨ Gerar"}
+            </button>
+            ${hasContent ? `<button class="btn btn-sm btn-danger" onclick="delArtefato('${key}')">🗑</button>` : ""}
+          </div>
+        </div>
+        ${hasContent ? `
+          <div id="art-view-${key}" style="background:#f8fafc;border-radius:8px;padding:12px;font-size:12px;line-height:1.75;color:#374151;white-space:pre-wrap;max-height:280px;overflow-y:auto;border:1px solid #e2e8f0;font-family:'Courier New',monospace">${art.conteudo.replace(/&/g,"&amp;").replace(/</g,"&lt;")}</div>
+          <textarea id="art-edit-${key}" style="display:none;width:100%;min-height:200px;border:1px solid #1e6efb;border-radius:8px;padding:12px;font-size:12px;line-height:1.75;resize:vertical;font-family:'Courier New',monospace;box-sizing:border-box" oninput="saveArtEdit('${key}')">${art.conteudo.replace(/</g,"&lt;")}</textarea>
+        ` : `<p style="font-size:12px;color:#94a3b8;margin-top:6px">Clique "✨ Gerar" para criar com IA${hasTemplate ? " (usando template customizado)" : ""}.</p>`}
+      </div>`;
+    }).join("");
+
+    return `
+    <div style="margin-bottom:4px">
+      <div style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.07em;margin:12px 0 6px;padding-left:2px">${grupo.label}</div>
+      ${cards}
+    </div>`;
+  }).join("");
+
+  q("content").innerHTML = `
+  <div class="stack">
+    <div class="flex-bet">
+      <span style="font-size:14px;font-weight:700">Artefatos do Projeto</span>
+    </div>
+    ${skillBanner}
+    ${artCards}
+  </div>`;
+}
+
+function toggleArtEdit(key) {
+  const view = q(`art-view-${key}`);
+  const edit = q(`art-edit-${key}`);
+  if (!view || !edit) return;
+  const editing = edit.style.display !== "none";
+  view.style.display = editing ? "block" : "none";
+  edit.style.display = editing ? "none" : "block";
+  if (!editing) edit.focus();
+}
+
+function saveArtEdit(key) {
+  const edit = q(`art-edit-${key}`);
+  if (!edit) return;
+  const p = proj(); if (!p) return;
+  p.artefatos = p.artefatos || {};
+  p.artefatos[key] = p.artefatos[key] || { status: "rascunho", conteudo: "" };
+  p.artefatos[key].conteudo = edit.value;
+  // sync view without full re-render
+  const view = q(`art-view-${key}`);
+  if (view) view.textContent = edit.value;
+  save();
+}
+
+function setArtStatus(key, status) {
+  const p = proj(); if (!p) return;
+  p.artefatos = p.artefatos || {};
+  p.artefatos[key] = p.artefatos[key] || {};
+  p.artefatos[key].status = status;
+  save();
+}
+
+function delArtefato(key) {
+  confirmUser(`Excluir artefato`, `Remover o artefato "<strong>${ARTEFATO_CFG[key]?.label}</strong>"? O conteúdo será perdido.`, () => {
+    const p = proj(); if (!p) return;
+    if (p.artefatos) delete p.artefatos[key];
+    save(); render();
+  });
+}
+
+function toggleExportMenu(key) {
+  // Close all other menus first
+  document.querySelectorAll('[id^="exp-menu-"]').forEach(m => {
+    if (m.id !== "exp-menu-"+key) m.style.display = "none";
+  });
+  const menu = document.getElementById("exp-menu-"+key);
+  if (menu) menu.style.display = menu.style.display === "none" ? "block" : "none";
+  // Close on outside click
+  setTimeout(() => {
+    document.addEventListener("click", function _close(e) {
+      if (!e.target.closest('[id^="exp-menu-"]') && !e.target.closest("button")) {
+        document.querySelectorAll('[id^="exp-menu-"]').forEach(m => m.style.display = "none");
+      }
+      document.removeEventListener("click", _close);
+    });
+  }, 10);
+}
+
+const EXPORT_SKILL_HINTS = {
+  docx: "Usa a skill docx do Claude. Gera um documento Word (.docx) profissional com identidade visual iDVL (cabeçalho #232d42, destaques #1e6efb, fonte Arial). Inclua sumário, numeração de páginas e formatação adequada para órgãos públicos.",
+  xlsx: "Usa a skill xlsx do Claude. Gera uma planilha Excel (.xlsx) com identidade visual iDVL (cores #232d42, #1e6efb, #f2f2f2). Use tabelas formatadas, cabeçalhos em negrito e fórmulas onde aplicável.",
+  pdf:  "Usa a skill pdf do Claude. Gera um PDF profissional com identidade visual iDVL. Preserve a estrutura do Markdown com hierarquia visual clara, adequado para impressão e arquivamento.",
+  pptx: "Usa a skill pptx do Claude. Gera uma apresentação PowerPoint (.pptx) com identidade visual iDVL (fundo escuro #232d42, destaques #1e6efb). Um slide por seção principal, com títulos, bullets e visual limpo.",
+};
+
+function exportarArtefato(key, formato) {
+  const p = proj(); if (!p) return;
+  const art = p.artefatos?.[key]; if (!art?.conteudo) return;
+  const cfg = ARTEFATO_CFG[key];
+
+  // Close dropdown
+  document.querySelectorAll('[id^="exp-menu-"]').forEach(m => m.style.display = "none");
+
+  const hint = EXPORT_SKILL_HINTS[formato] || "";
+  const prompt = `Gera o artefato "${cfg.label}" do projeto "${p.name}" no formato .${formato}.\n\n${hint}\n\nConteúdo do artefato em Markdown:\n\n${art.conteudo}`;
+
+  // Copy to clipboard
+  navigator.clipboard.writeText(prompt).then(() => {
+    toast(`Prompt copiado! Cole no Claude.ai para gerar o .${formato}.`);
+  }).catch(() => {
+    // Fallback
+    const ta = document.createElement("textarea");
+    ta.value = prompt; ta.style.position = "fixed"; ta.style.opacity = "0";
+    document.body.appendChild(ta); ta.select(); document.execCommand("copy");
+    document.body.removeChild(ta);
+    toast(`Prompt copiado! Cole no Claude.ai para gerar o .${formato}.`);
+  });
+}
+
+let artGenerating = {};
+
+async function gerarArtefato(key) {
+  if (artGenerating[key]) return;
+  if (!activeProvider()) { toast("Configure a IA primeiro.", "err"); openModal("m-ai"); return; }
+  const p = proj(); if (!p) return;
+  const cfg = ARTEFATO_CFG[key]; if (!cfg) return;
+
+  const btn = q(`btn-gerar-${key}`);
+  if (btn) { btn.disabled = true; btn.textContent = "Gerando…"; }
+  artGenerating[key] = true;
+
+  const card = q(`art-card-${key}`);
+  const spinDiv = document.createElement("div");
+  spinDiv.id = `art-spin-${key}`;
+  spinDiv.style.cssText = "display:flex;align-items:center;gap:8px;padding:10px;color:#64748b;font-size:13px";
+  spinDiv.innerHTML = `<div class="spin"></div> Gerando ${cfg.label}…`;
+  card?.appendChild(spinDiv);
+
+  // Contexto completo do projeto
+  const contexto = `PROJETO: ${p.name}
+Contexto/Órgão: ${p.context || "—"}
+Patrocinador: ${p.sponsor || "—"}
+Fase: ${p.phase} | Status: ${p.status} | Prazo: ${p.deadline || "—"}
+OKRs: ${(p.okrs||[]).map(o => `"${o.objective}" [${(o.keyResults||[]).map(k=>k.text+" "+k.progress+"%").join("; ")}]`).join(" · ") || "—"}
+Marcos: ${(p.milestones||[]).map(m => m.name+" ("+m.date+"/"+m.status+")").join(", ") || "—"}
+Riscos: ${(p.risks||[]).map(r => r.desc+" ["+r.prob+"/"+r.impact+"/"+r.status+"]").join("; ") || "—"}`;
+
+  // Escolhe a instrução: template customizado > referência da skill > metodologia geral
+  let templateContent = skillTemplates[key] || null;
+  // Para canvas, adiciona a referência do Easy Life Canvas se disponível
+  if (key === "canvas_elc" && skillCanvasRef) {
+    templateContent = skillCanvasRef;
+  }
+
+  // Extrai a seção específica do artefato da metodologia carregada
+  const metodologia = metodologiaSkill || METODOLOGIA_PADRAO;
+  const secaoRegex  = new RegExp(`## [^\\n]*\\(${key}\\)[\\s\\S]*?(?=\\n## |$)`, "i");
+  const secaoMatch  = metodologia.match(secaoRegex);
+  const instrucaoEspecifica = secaoMatch ? secaoMatch[0] : "";
+
+  const systemPrompt = templateContent
+    ? `Você é um especialista em gestão de projetos (EasyBok + EasyPMDOC). O usuário tem um template customizado para "${cfg.label}". Preencha o template com os dados reais do projeto, substituindo todos os marcadores [CAMPO] pelos valores correspondentes. Preserve a estrutura, seções e formatação do template exatamente. Retorne apenas o documento preenchido em Markdown, sem preâmbulo.`
+    : `Você é um especialista em gestão de projetos (EasyBok + EasyPMDOC). Gere APENAS o artefato "${cfg.label}" seguindo as instruções abaixo. Use Markdown formatado (tabelas, listas, títulos). Contextualize com os dados reais do projeto. Linguagem formal, adequada para órgãos públicos (TCE, BID, PROFISCO quando aplicável). Retorne apenas o artefato, sem preâmbulo.
+
+${instrucaoEspecifica || `## ${cfg.label}\n${metodologia.split("## Diretrizes gerais")[1] || ""}`.slice(0,800)}`;
+
+  const userMsg = templateContent
+    ? `Preencha o template abaixo com os dados deste projeto:\n\n${contexto}\n\n---\nTEMPLATE:\n${templateContent}`
+    : `Gere o artefato "${cfg.label}" para este projeto:\n\n${contexto}`;
+
+  try {
+    const resultado = await callAI(systemPrompt, userMsg, 4000);
+    p.artefatos = p.artefatos || {};
+    p.artefatos[key] = { status:"rascunho", conteudo:resultado, geradoEm:new Date().toISOString() };
+    save(); render();
+    toast(`${cfg.icon} ${cfg.label} gerado!`);
+  } catch(e) {
+    toast("Erro ao gerar: " + e.message, "err");
+    spinDiv?.remove();
+    if (btn) { btn.disabled = false; btn.textContent = "✨ Gerar"; }
+  }
+  artGenerating[key] = false;
+}
+
+async function reloadSkill() {
+  metodologiaSkill = await loadMetodologiaSkill();
+  const p = proj(); if (p) renderArtefatos(p);
+  const nT = Object.keys(skillTemplates).length;
+  if (metodologiaSkill) {
+    toast(`Skill recarregada! ${nT} template(s)${skillCanvasRef ? " · Canvas ref." : ""}`);
+  } else {
+    toast("Pasta pm-agent-metodologia/ não encontrada. Usando metodologia padrão.");
+  }
+}
+
+async function exportarMetodologiaPadrao() {
+  if (!folderHandle) { toast("Mapeie uma pasta primeiro.", "err"); return; }
+  try {
+    // Cria a estrutura de pastas pm-agent-metodologia/
+    const skillDir   = await folderHandle.getDirectoryHandle("pm-agent-metodologia", { create: true });
+    const refsDir    = await skillDir.getDirectoryHandle("references", { create: true });
+    const tmplDir    = await refsDir.getDirectoryHandle("templates",  { create: true });
+    const artDir     = await refsDir.getDirectoryHandle("artefatos",  { create: true });
+
+    // Salva SKILL.md com a metodologia padrão
+    const skillFh = await skillDir.getFileHandle("SKILL.md", { create: true });
+    const ws1 = await skillFh.createWritable();
+    await ws1.write(METODOLOGIA_PADRAO); await ws1.close();
+
+    // Salva template de nota técnica
+    const notaFh = await tmplDir.getFileHandle("nota_tecnica.md", { create: true });
+    const ws2 = await notaFh.createWritable();
+    await ws2.write(`# NOTA TÉCNICA Nº [NUMERO] / [ANO]\n\n**Data:** [DATA]\n**Para:** [DESTINATARIO] — [CARGO]\n**De:** [REMETENTE] — [CARGO]\n**Assunto:** [ASSUNTO]\n**Referência:** [PROCESSO]\n\n---\n\n## 1. Objetivo\n\n[Descreva o objetivo da nota técnica.]\n\n## 2. Referências Legais e Normativas\n\n- [Lei/Decreto/Portaria aplicável]\n\n## 3. Análise Técnica\n\n### 3.1 Contexto\n\n[Situação atual ou problema identificado.]\n\n### 3.2 Análise\n\n[Desenvolvimento técnico com dados e fundamentação.]\n\n## 4. Conclusão e Recomendação\n\n[Conclusão e encaminhamento recomendado.]\n\n---\n\n[CIDADE], [DATA_EXTENSO]\n\n___________________________\n**[NOME]**\n[CARGO] · [ORGAO]`);
+    await ws2.close();
+
+    // Salva LEIA-ME.md na pasta templates
+    const leiameFh = await tmplDir.getFileHandle("LEIA-ME.md", { create: true });
+    const ws3 = await leiameFh.createWritable();
+    await ws3.write(`# Templates Customizados\n\nSalve arquivos .md aqui com o nome do artefato.\nExemplo: \`nota_tecnica.md\`, \`tr.md\`, \`tap.md\`.\n\nO agente usará o template em vez da instrução padrão da skill.`);
+    await ws3.close();
+
+    toast("Estrutura pm-agent-metodologia/ exportada! Edite os arquivos e clique Recarregar.");
+    await reloadSkill();
+  } catch(e) { toast("Erro ao exportar: " + e.message, "err"); }
+}
+
+// ═══════════════════════════════════════════════════════
+// MODAIS
+// ═══════════════════════════════════════════════════════
+function openModal(id){
+  if(id==="m-schema")renderSchema();
+  if(id==="m-backup"){const p=proj();if(p)q("bk-info").textContent=`"${p.name}" · ${p.log?.length||0} registros`}
+  if(id==="m-ai"){
+    selectProvider(aiProvider);
+    // seleciona visualmente o provider ativo
+    const ap=activeProvider();if(ap)selectProvider(ap);
+  }
+  q(id)?.classList.add("open");
+}
+function closeModal(id){q(id)?.classList.remove("open")}
+function bgClose(ev,id){if(ev.target.id===id)closeModal(id)}
+
+// ═══════════════════════════════════════════════════════
+// TAREFAS — modelo, helpers, render, CRUD
+// ═══════════════════════════════════════════════════════
+
+// Tarefas sem projeto ficam em globalTasks
+function getAllTasks(){
+  const all=[];
+  (projects||[]).forEach(p=>(p.tasks||[]).forEach(t=>all.push({...t,_projectId:p.id,_projectName:p.name})));
+  return all;
+}
+function getProjectTasks(pid){
+  const p=projects.find(x=>x.id===pid);
+  return (p?.tasks||[]).map(t=>({...t,_projectId:pid,_projectName:p.name}));
+}
+function allOpenTasks(pid){
+  return (getProjectTasks(pid)).filter(t=>t.status!=="concluida"&&t.status!=="cancelada").length;
+}
+
+function updateTaskBadge(){
+  const p=proj();
+  const btn=q("nav-tarefas");
+  if(!btn||!p) return;
+  const n=allOpenTasks(p.id);
+  btn.textContent=n>0?`Tarefas (${n})`:"Tarefas";
+}
+
+const TASK_STATUS={
+  a_fazer:     {label:"A fazer",       color:"#1e6efb",bg:"#e8f0fe"},
+  em_andamento:{label:"Em andamento",  color:"#d97706",bg:"#fef3c7"},
+  em_revisao:  {label:"Em revisão",    color:"#7c3aed",bg:"#ede9fe"},
+  concluida:   {label:"Concluída",     color:"#0a8a5c",bg:"#e0f5ec"},
+  cancelada:   {label:"Cancelada",     color:"#64748b",bg:"#f1f5f9"},
+};
+const TASK_PRIO={
+  baixa:  {label:"Baixa",   dot:"#94a3b8"},
+  media:  {label:"Média",   dot:"#d97706"},
+  alta:   {label:"Alta",    dot:"#dc2626"},
+  critica:{label:"Crítica", dot:"#7c3aed"},
+};
+
+let taskFilter="todas";
+let editingTaskId=null;
+let modalChecklistItems=[];
+
+function renderTarefas(p){
+  const tasks=(p.tasks||[]);
+  const filtered=taskFilter==="todas"?tasks
+    :taskFilter==="abertas"?tasks.filter(t=>t.status!=="concluida"&&t.status!=="cancelada")
+    :taskFilter==="atrasadas"?tasks.filter(t=>t.dueDate&&t.dueDate<today()&&t.status!=="concluida"&&t.status!=="cancelada")
+    :taskFilter==="concluidas"?tasks.filter(t=>t.status==="concluida")
+    :tasks;
+
+  const fBtns=[
+    ["todas","Todas"],["abertas","Abertas"],["atrasadas","Atrasadas"],["concluidas","Concluídas"]
+  ].map(([k,l])=>`<button class="tag${taskFilter===k?" active":""}" style="${taskFilter===k?"color:#1e6efb;background:#e8f0fe;border-color:#1e6efb":""}" onclick="taskFilter='${k}';render()">${l}</button>`).join("");
+
+  const rows=filtered.map(t=>{
+    const sc=TASK_STATUS[t.status]||TASK_STATUS.a_fazer;
+    const pr=TASK_PRIO[t.priority]||TASK_PRIO.media;
+    const overdue=t.dueDate&&t.dueDate<today()&&t.status!=="concluida"&&t.status!=="cancelada";
+    const done=t.checklist?.filter(i=>i.done).length||0;
+    const total=t.checklist?.length||0;
+    const pct=total?Math.round(done/total*100):0;
+    return`<div class="card" style="margin-bottom:8px;cursor:pointer;border:${overdue?"1px solid #fca5a5":"1px solid #e2e8f0"}" onclick="openTaskDetail('${t.id}')">
+      <div class="flex-bet" style="gap:8px;flex-wrap:wrap">
+        <div style="display:flex;align-items:flex-start;gap:8px;flex:1;min-width:0">
+          <div style="width:8px;height:8px;border-radius:50%;background:${pr.dot};flex-shrink:0;margin-top:4px"></div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:13px;font-weight:600;color:${t.status==="concluida"?"#94a3b8":"#0f172a"};text-decoration:${t.status==="concluida"?"line-through":"none"}">${t.title}</div>
+            <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:5px;align-items:center">
+              <span class="badge" style="color:${sc.color};background:${sc.bg};font-size:10px">${sc.label}</span>
+              ${t.projectId?`<span class="badge" style="color:#7c3aed;background:#ede9fe;font-size:10px">${projects.find(x=>x.id===t.projectId)?.name?.slice(0,20)||"Projeto"}</span>`:""}
+              ${t.dueDate?`<span style="font-size:11px;color:${overdue?"#dc2626":"#64748b"};font-weight:${overdue?700:400}">${overdue?"⚠ ":""}vence ${fmtDate(t.dueDate)}</span>`:""}
+              ${(t.tags||[]).map(tg=>`<span class="badge" style="background:#f1f5f9;color:#475569;font-size:10px">${tg}</span>`).join("")}
+            </div>
+            ${total>0?`<div style="margin-top:6px;display:flex;align-items:center;gap:6px">
+              <div class="bar-track" style="width:100px"><div class="bar-fill" style="width:${pct}%;background:${pct===100?"#0a8a5c":"#d97706"}"></div></div>
+              <span style="font-size:10px;color:#94a3b8">${done}/${total}</span>
+            </div>`:""}
+          </div>
+        </div>
+        <div style="font-size:11px;color:#94a3b8;flex-shrink:0">${t.assignee||""}</div>
+      </div>
+    </div>`;
+  }).join("");
+
+  q("content").innerHTML=`
+  <div class="stack">
+    <div class="flex-bet" style="flex-wrap:wrap;gap:8px">
+      <div class="tag-row" style="margin:0;flex-wrap:wrap">${fBtns}</div>
+      <button class="btn btn-primary btn-sm" onclick="openNewTask()">+ Nova tarefa</button>
+    </div>
+    ${filtered.length?rows:`<div class="empty"><div class="empty-icon">✅</div><p>Nenhuma tarefa${taskFilter!=="todas"?" nesta categoria":""}.</p></div>`}
+  </div>`;
+}
+
+// ── Task Modal ───────────────────────────────────────────────────────────────
+function openNewTask(){
+  editingTaskId=null;
+  modalChecklistItems=[];
+  q("m-task-title").textContent="Nova Tarefa";
+  q("tk-title").value="";
+  q("tk-desc").value="";
+  q("tk-status").value="a_fazer";
+  q("tk-priority").value="media";
+  q("tk-start").value="";
+  q("tk-due").value="";
+  q("tk-assignee").value="Julio Moreira";
+  q("tk-tags").value="";
+  q("tk-del-btn").style.display="none";
+  // Fill project selector
+  q("tk-project").innerHTML=`<option value="">— Sem projeto —</option>`+
+    projects.map(p=>`<option value="${p.id}"${p.id===activeId?" selected":""}>${p.name.slice(0,36)}</option>`).join("");
+  renderModalChecklist();
+  openModal("m-task");
+  setTimeout(()=>q("tk-title")?.focus(),60);
+}
+
+function openTaskDetail(taskId){
+  const p=proj();if(!p)return;
+  const t=(p.tasks||[]).find(x=>x.id===taskId);if(!t)return;
+  editingTaskId=taskId;
+  modalChecklistItems=(t.checklist||[]).map(i=>({...i}));
+  q("m-task-title").textContent="Editar Tarefa";
+  q("tk-title").value=t.title||"";
+  q("tk-desc").value=t.description||"";
+  q("tk-status").value=t.status||"a_fazer";
+  q("tk-priority").value=t.priority||"media";
+  q("tk-start").value=t.startDate||"";
+  q("tk-due").value=t.dueDate||"";
+  q("tk-assignee").value=t.assignee||"";
+  q("tk-tags").value=(t.tags||[]).join(", ");
+  q("tk-del-btn").style.display="inline-flex";
+  q("tk-project").innerHTML=`<option value="">— Sem projeto —</option>`+
+    projects.map(p2=>`<option value="${p2.id}"${p2.id===t.projectId?" selected":""}>${p2.name.slice(0,36)}</option>`).join("");
+  renderModalChecklist();
+  openModal("m-task");
+}
+
+function renderModalChecklist(){
+  const container=q("tk-checklist-items");
+  if(!container)return;
+  container.innerHTML=modalChecklistItems.map((item,i)=>`
+    <div style="display:flex;align-items:center;gap:7px;padding:5px 0;border-bottom:0.5px solid #f1f5f9">
+      <div onclick="toggleModalCLItem(${i})" style="width:15px;height:15px;border-radius:3px;border:1.5px solid ${item.done?"#0a8a5c":"#e2e8f0"};background:${item.done?"#0a8a5c":"transparent"};cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center">
+        ${item.done?`<svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3.5" stroke="white" stroke-width="1.2" stroke-linecap="round"/></svg>`:""}
+      </div>
+      <span style="flex:1;font-size:12px;color:${item.done?"#94a3b8":"#374151"};text-decoration:${item.done?"line-through":"none"}">${item.text}</span>
+      <button onclick="removeModalCLItem(${i})" style="background:transparent;border:none;cursor:pointer;font-size:12px;color:#fca5a5;padding:0 2px">✕</button>
+    </div>`).join("");
+}
+
+function toggleModalCLItem(i){
+  modalChecklistItems[i].done=!modalChecklistItems[i].done;
+  renderModalChecklist();
+}
+function removeModalCLItem(i){
+  modalChecklistItems.splice(i,1);
+  renderModalChecklist();
+}
+function addChecklistItemModal(){
+  const inp=q("tk-cl-new");
+  const text=inp?.value.trim();
+  if(!text)return;
+  modalChecklistItems.push({id:uid(),text,done:false});
+  inp.value="";
+  renderModalChecklist();
+}
+
+function saveTask(){
+  const title=q("tk-title")?.value.trim();
+  if(!title){toast("Informe o título da tarefa.","err");return}
+  const pid=q("tk-project")?.value||"";
+  const targetP=pid?projects.find(p=>p.id===pid):proj();
+  if(!targetP){toast("Selecione um projeto ou crie um primeiro.","err");return}
+  targetP.tasks=targetP.tasks||[];
+
+  const taskData={
+    title, description:q("tk-desc")?.value.trim()||"",
+    status:q("tk-status")?.value||"a_fazer",
+    priority:q("tk-priority")?.value||"media",
+    startDate:q("tk-start")?.value||"",
+    dueDate:q("tk-due")?.value||"",
+    assignee:q("tk-assignee")?.value.trim()||"",
+    projectId:pid||null,
+    tags:q("tk-tags")?.value.split(",").map(t=>t.trim()).filter(Boolean),
+    checklist:[...modalChecklistItems],
+    updated:today(),
+  };
+
+  if(editingTaskId){
+    const idx=targetP.tasks.findIndex(t=>t.id===editingTaskId);
+    if(idx>=0) targetP.tasks[idx]={...targetP.tasks[idx],...taskData};
+    else targetP.tasks.push({id:uid(),created:today(),...taskData});
+  } else {
+    targetP.tasks.push({id:uid(),created:today(),...taskData});
+  }
+  save();closeModal("m-task");render();
+  toast(editingTaskId?"Tarefa atualizada!":"Tarefa criada!");
+  if(folderHandle) saveToFolder();
+}
+
+function deleteCurrentTask(){
+  if(!editingTaskId)return;
+  const p=proj();if(!p)return;
+  const t=(p.tasks||[]).find(x=>x.id===editingTaskId);if(!t)return;
+  confirmUser("Excluir Tarefa",`Excluir "<strong>${t.title}</strong>"? Esta ação não pode ser desfeita.`,()=>{
+    p.tasks=p.tasks.filter(x=>x.id!==editingTaskId);
+    save();closeModal("m-task");render();
+    toast("Tarefa excluída.");
+    if(folderHandle) saveToFolder();
+  });
+}
+
+function toggleTask(taskId){
+  const p=proj();if(!p)return;
+  const t=(p.tasks||[]).find(x=>x.id===taskId);if(!t)return;
+  t.status=t.status==="concluida"?"a_fazer":"concluida";
+  t.updated=today();
+  save();render();
+}
+
+// ═══════════════════════════════════════════════════════
+// CALENDÁRIO — visão mensal consolidada
+// ═══════════════════════════════════════════════════════
+
+let calYear=new Date().getFullYear();
+let calMonth=new Date().getMonth();
+
+function renderCalendario(){
+  const monthNames=["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+  const dayNames=["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
+  const todayStr=today();
+
+  // Collect all events from all projects
+  const events={};
+  function addEv(dateStr,ev){if(!dateStr)return;events[dateStr]=events[dateStr]||[];events[dateStr].push(ev);}
+
+  projects.forEach(p=>{
+    // Project tasks
+    (p.tasks||[]).forEach(t=>{
+      if(t.dueDate){
+        const overdue=t.dueDate<todayStr&&t.status!=="concluida"&&t.status!=="cancelada";
+        addEv(t.dueDate,{label:t.title.slice(0,18),type:overdue?"ev-red":"ev-blue",title:`[Tarefa] ${t.title} — ${p.name}`});
+      }
+      if(t.startDate&&t.startDate!==t.dueDate)
+        addEv(t.startDate,{label:"▶ "+t.title.slice(0,15),type:"ev-blue",title:`[Início] ${t.title}`});
+    });
+    // Milestones
+    (p.milestones||[]).forEach(m=>{
+      if(m.date) addEv(m.date,{label:m.name.slice(0,18),type:"ev-purple",title:`[Marco] ${m.name} — ${p.name}`});
+    });
+    // Project deadline
+    if(p.deadline) addEv(p.deadline,{label:"🏁 "+p.name.slice(0,14),type:"ev-green",title:`[Prazo] ${p.name}`});
+  });
+
+  // Build calendar grid
+  const firstDay=new Date(calYear,calMonth,1).getDay();
+  const daysInMonth=new Date(calYear,calMonth+1,0).getDate();
+  const cells=[];
+  for(let i=0;i<firstDay;i++) cells.push(null);
+  for(let d=1;d<=daysInMonth;d++) cells.push(d);
+  while(cells.length%7!==0) cells.push(null);
+
+  const gridCells=cells.map(d=>{
+    if(!d) return`<div></div>`;
+    const dateStr=`${calYear}-${String(calMonth+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+    const isToday=dateStr===todayStr;
+    const dayEvents=events[dateStr]||[];
+    const numStr=isToday
+      ?`<span style="display:inline-flex;width:20px;height:20px;background:#1e6efb;color:#fff;border-radius:50%;align-items:center;justify-content:center;font-size:10px;font-weight:700">${d}</span>`
+      :`<span style="font-size:11px;color:#94a3b8">${d}</span>`;
+    const evHtml=dayEvents.slice(0,3).map(ev=>
+      `<div class="${ev.type}" title="${ev.title}" style="font-size:9px;padding:1px 4px;border-radius:3px;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:default">${ev.label}</div>`
+    ).join("")+(dayEvents.length>3?`<div style="font-size:9px;color:#94a3b8;padding-left:4px">+${dayEvents.length-3}</div>`:"");
+    return`<div style="min-height:60px;border-radius:7px;padding:4px 5px;border:0.5px solid ${dayEvents.length?"#e2e8f0":"transparent"};background:${dayEvents.length?"var(--surface)":"transparent"}">
+      <div style="margin-bottom:2px">${numStr}</div>${evHtml}</div>`;
+  }).join("");
+
+  const dayHeaders=dayNames.map(d=>`<div style="font-size:10px;font-weight:600;text-align:center;color:#94a3b8;padding:4px 0">${d}</div>`).join("");
+
+  q("content").innerHTML=`
+  <div class="stack">
+    <div class="card">
+      <div class="flex-bet" style="margin-bottom:14px;flex-wrap:wrap;gap:8px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <button class="btn btn-secondary btn-sm" onclick="calMonth--;if(calMonth<0){calMonth=11;calYear--}render()">‹</button>
+          <span style="font-size:15px;font-weight:700;min-width:160px;text-align:center">${monthNames[calMonth]} ${calYear}</span>
+          <button class="btn btn-secondary btn-sm" onclick="calMonth++;if(calMonth>11){calMonth=0;calYear++}render()">›</button>
+          <button class="btn btn-secondary btn-sm" onclick="calYear=new Date().getFullYear();calMonth=new Date().getMonth();render()">Hoje</button>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <span class="badge" style="color:#1e6efb;background:#e8f0fe;font-size:10px">● Tarefa</span>
+          <span class="badge" style="color:#7c3aed;background:#ede9fe;font-size:10px">● Marco</span>
+          <span class="badge" style="color:#0a8a5c;background:#e0f5ec;font-size:10px">● Prazo</span>
+          <span class="badge" style="color:#dc2626;background:#fee2e2;font-size:10px">● Atrasada</span>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px">
+        ${dayHeaders}${gridCells}
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Eventos do mês — ${monthNames[calMonth]}</div>
+      ${Object.entries(events)
+        .filter(([d])=>d.startsWith(`${calYear}-${String(calMonth+1).padStart(2,"0")}`))
+        .sort(([a],[b])=>a.localeCompare(b))
+        .map(([d,evs])=>evs.map(ev=>`
+          <div style="display:flex;gap:10px;padding:6px 0;border-bottom:0.5px solid #f8fafc;align-items:flex-start">
+            <span style="font-size:11px;color:#64748b;white-space:nowrap;min-width:70px">${fmtDate(d)}</span>
+            <span class="${ev.type}" style="font-size:10px;padding:2px 7px;border-radius:99px;white-space:nowrap">${ev.label.startsWith("🏁")||ev.label.startsWith("▶")?ev.label:ev.type==="ev-purple"?"Marco":"Tarefa"}</span>
+            <span style="font-size:12px;color:#374151;flex:1">${ev.title}</span>
+          </div>`).join("")).join("")||`<p style="font-size:13px;color:#94a3b8;text-align:center;padding:16px 0">Nenhum evento neste mês.</p>`}
+    </div>
+  </div>`;
+}
+
+// Inject calendar event CSS into page if not already there
+(function injectCalCSS(){
+  if(q("cal-css"))return;
+  const s=document.createElement("style");
+  s.id="cal-css";
+  s.textContent=`.ev-blue{background:#e8f0fe;color:#1e6efb}.ev-green{background:#e0f5ec;color:#0a8a5c}.ev-amber{background:#fef3c7;color:#b45309}.ev-purple{background:#ede9fe;color:#7c3aed}.ev-red{background:#fee2e2;color:#dc2626}`;
+  document.head.appendChild(s);
+})();
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+
+load();renderAll();updateAIPill();restoreFolder();
+</script>
+</body>
+</html>
