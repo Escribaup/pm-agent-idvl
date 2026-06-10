@@ -16,7 +16,14 @@ header{background:#232d42;padding:12px 18px;display:flex;align-items:center;gap:
 .brand{color:#fff;font-weight:700;font-size:14px}
 .brand small{display:block;color:#94a3b8;font-size:10px;font-weight:400}
 .hcontrols{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-left:auto}
-#proj-sel{background:#334155;color:#fff;border:1px solid #475569;border-radius:7px;padding:5px 9px;font-size:12px;max-width:200px}
+/* Seletor de projeto */
+.proj-sel-wrap{position:relative;display:flex;align-items:center;min-width:200px;max-width:320px;flex:1 1 200px}
+.proj-sel-wrap::before{content:"📂";position:absolute;left:9px;font-size:12px;pointer-events:none;z-index:1;line-height:1}
+.proj-sel-wrap::after{content:"▾";position:absolute;right:9px;font-size:10px;color:#94a3b8;pointer-events:none;z-index:1}
+#proj-sel{background:#1e293b;color:#f1f5f9;border:1px solid #475569;border-radius:8px;padding:7px 26px 7px 28px;font-size:12.5px;font-weight:500;width:100%;cursor:pointer;appearance:none;-webkit-appearance:none;transition:border-color .2s,background .2s;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#proj-sel:hover{background:#273347;border-color:#6b7c99}
+#proj-sel:focus{border-color:#1e6efb;outline:none;box-shadow:0 0 0 2px rgba(30,110,251,.25)}
+#proj-sel option{background:#1e293b;color:#f1f5f9}
 
 /* AI status pill in header */
 #ai-pill{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:99px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid;transition:all .2s}
@@ -92,6 +99,10 @@ textarea.inp{resize:vertical;min-height:72px}
 .key-status{font-size:11px;padding:3px 8px;border-radius:99px;font-weight:600}
 .key-status.saved{background:#e0f5ec;color:#0a8a5c}
 .key-status.missing{background:#fef3c7;color:#92400e}
+/* chips de modelo sugerido */
+.model-chip{padding:3px 9px;border-radius:99px;font-size:11px;font-weight:600;cursor:pointer;border:1.5px solid #e2e8f0;background:#fff;color:#64748b;transition:all .15s;white-space:nowrap;font-family:monospace}
+.model-chip:hover{border-color:#94a3b8;color:#0f172a;background:#f8fafc}
+.model-chip.active{border-color:#1e6efb;background:#e8f0fe;color:#1e6efb}
 
 .schema{background:#0f172a;border-radius:10px;padding:14px;font-family:'Courier New',monospace;font-size:11.5px;line-height:1.75;color:#e2e8f0;overflow:auto;white-space:pre;max-height:400px}
 .agent-box{background:#f0f7ff;border:1px solid #bfdbfe;border-radius:8px;padding:12px;font-size:13px;color:#1e40af;line-height:1.6;margin-top:10px;display:none}
@@ -131,7 +142,9 @@ textarea.inp{resize:vertical;min-height:72px}
   </div>
   <div class="brand">PM Agent <small>iDVL Tecnologia Contábil</small></div>
   <div class="hcontrols">
-    <select id="proj-sel" onchange="switchProject(this.value)"></select>
+    <div class="proj-sel-wrap">
+      <select id="proj-sel" onchange="switchProject(this.value)" title="Selecionar projeto"></select>
+    </div>
     <button class="btn btn-sm" title="Editar / Excluir projeto" style="background:#334155;color:#cbd5e1;border:1px solid #475569;padding:5px 8px" onclick="openEditProject()">✏️</button>
     <button class="btn btn-primary btn-sm" onclick="openModal('m-new')">+ Projeto</button>
     <button class="btn btn-sm" style="background:#334155;color:#cbd5e1;border:1px solid #475569" onclick="openModal('m-folder')">📁 Pasta</button>
@@ -190,7 +203,7 @@ textarea.inp{resize:vertical;min-height:72px}
       <div class="provider-card" id="pc-gemini" onclick="selectProvider('gemini')">
         <div style="font-size:22px;margin-bottom:6px">🔵</div>
         <div class="p-name">Gemini</div>
-        <div class="p-sub">Google<br>gemini-2.0-flash</div>
+        <div class="p-sub">Google<br>gemini-2.5-flash</div>
         <div class="p-check">✓</div>
       </div>
       <div class="provider-card" id="pc-openai" onclick="selectProvider('openai')">
@@ -213,8 +226,9 @@ textarea.inp{resize:vertical;min-height:72px}
     <!-- Model input -->
     <div class="field" style="margin-bottom:10px">
       <label>Modelo <span style="font-size:10px;color:#94a3b8;font-weight:400">(deixe em branco para usar o padrão)</span></label>
+      <div id="model-chips-row" style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:6px"></div>
       <div style="display:flex;gap:8px;align-items:center">
-        <input class="inp" id="ai-model-inp" placeholder="" style="flex:1;font-family:monospace;font-size:12px">
+        <input class="inp" id="ai-model-inp" placeholder="" style="flex:1;font-family:monospace;font-size:12px" oninput="onModelInpInput()">
         <button class="btn btn-secondary btn-sm" onclick="resetModel()" title="Restaurar modelo padrão">↺</button>
       </div>
       <div id="ai-model-hint" style="font-size:11px;color:#94a3b8;margin-top:3px"></div>
@@ -365,17 +379,35 @@ textarea.inp{resize:vertical;min-height:72px}
 <div id="m-folder" class="overlay" onclick="bgClose(event,'m-folder')">
   <div class="modal">
     <div class="modal-hdr"><span class="modal-title">📁 Pasta de Projetos</span><button class="btn btn-secondary btn-sm" onclick="closeModal('m-folder')">✕</button></div>
-    <div class="info-box blue">
-      <div class="info-title" style="color:#1e40af">Como funciona</div>
-      <ul class="info-sub" style="padding-left:16px;margin-top:4px">
-        <li>Selecione uma pasta (ex: Google Drive / iDVL / PM-Agent /)</li>
-        <li>O app salva um <code>.json</code> por projeto nessa pasta</li>
-        <li>Sincronize via Google Drive para usar em outros computadores</li>
-        <li>Funciona no Chrome e Edge modernos (v86+)</li>
-      </ul>
+    <div id="m-folder-picker-section">
+      <div class="info-box blue">
+        <div class="info-title" style="color:#1e40af">Como funciona</div>
+        <ul class="info-sub" style="padding-left:16px;margin-top:4px">
+          <li>Selecione uma pasta (ex: Google Drive / iDVL / PM-Agent /)</li>
+          <li>O app salva um <code>.json</code> por projeto nessa pasta</li>
+          <li>Sincronize via Google Drive para usar em outros computadores</li>
+          <li>Funciona no Chrome e Edge modernos (v86+)</li>
+        </ul>
+      </div>
+      <div class="info-box gray"><div class="info-title" style="color:#475569">⚠️ Requisito</div><div class="info-sub">O navegador pedirá permissão de leitura/escrita na pasta. Apenas Chrome e Edge suportam este recurso.</div></div>
+      <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:4px" onclick="pickFolder();closeModal('m-folder')">📁 Selecionar Pasta</button>
     </div>
-    <div class="info-box gray"><div class="info-title" style="color:#475569">⚠️ Requisito</div><div class="info-sub">O navegador pedirá permissão de leitura/escrita na pasta. Apenas Chrome e Edge suportam este recurso.</div></div>
-    <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:4px" onclick="pickFolder();closeModal('m-folder')">📁 Selecionar Pasta</button>
+    <div id="m-folder-fallback-section" style="display:none">
+      <div class="info-box" style="background:#fff7ed;border:1px solid #fed7aa;margin-bottom:10px">
+        <div class="info-title" style="color:#c2410c">⚠️ Seleção de pasta não disponível</div>
+        <div class="info-sub">Este ambiente não suporta mapeamento de pasta diretamente.<br>
+        Use a opção abaixo para <strong>carregar os arquivos .json</strong> dos seus projetos manualmente.</div>
+      </div>
+      <div class="info-box blue">
+        <div class="info-title" style="color:#1e40af">📂 Carregar projetos (.json)</div>
+        <div class="info-sub" style="margin-bottom:10px">Selecione um ou mais arquivos <code>.json</code> exportados pelo PM Agent. Você pode selecionar múltiplos de uma vez.</div>
+        <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="openFolderFallback();closeModal('m-folder')">📂 Selecionar arquivo(s) .json</button>
+      </div>
+      <div class="info-box gray" style="margin-top:0">
+        <div class="info-title" style="color:#475569">💾 Para salvar alterações</div>
+        <div class="info-sub">Use <strong>Backup → Baixar .json</strong> após cada sessão e guarde o arquivo na sua pasta do Google Drive.</div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -459,9 +491,39 @@ const STATUS_CFG={"em andamento":{color:"#1e6efb",bg:"#e8f0fe"},concluído:{colo
 const MS_STATUS=["pendente","em andamento","concluído","cancelado"];
 
 const PROVIDERS={
-  claude:{name:"Claude",model:"claude-haiku-4-5-20251001",url:"https://api.anthropic.com/v1/messages",hint:"https://console.anthropic.com/settings/keys",keyLabel:"Anthropic API Key (sk-ant-...)"},
-  gemini:{name:"Gemini",model:"gemini-2.0-flash",url:"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent",hint:"https://aistudio.google.com/app/apikey",keyLabel:"Google AI Studio Key (AIza...)"},
-  openai:{name:"ChatGPT",model:"gpt-4o-mini",url:"https://api.openai.com/v1/chat/completions",hint:"https://platform.openai.com/api-keys",keyLabel:"OpenAI API Key (sk-...)"},
+  claude:{
+    name:"Claude",model:"claude-haiku-4-5-20251001",
+    url:"https://api.anthropic.com/v1/messages",
+    hint:"https://console.anthropic.com/settings/keys",
+    keyLabel:"Anthropic API Key (sk-ant-...)",
+    suggested:[
+      {id:"claude-haiku-4-5-20251001",  label:"Haiku 4.5",   desc:"Rápido e econômico"},
+      {id:"claude-sonnet-4-5-20251101", label:"Sonnet 4.5",  desc:"Equilíbrio custo/qualidade"},
+      {id:"claude-opus-4-5-20251101",   label:"Opus 4.5",    desc:"Máxima capacidade"},
+    ]
+  },
+  gemini:{
+    name:"Gemini",model:"gemini-2.5-flash",
+    url:"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
+    hint:"https://aistudio.google.com/app/apikey",
+    keyLabel:"Google AI Studio Key (AIza...)",
+    suggested:[
+      {id:"gemini-2.5-flash", label:"2.5 Flash", desc:"Atual e recomendado"},
+      {id:"gemini-2.5-pro",   label:"2.5 Pro",   desc:"Mais poderoso"},
+      {id:"gemini-2.0-flash-lite", label:"2.0 Lite", desc:"Ultra-econômico"},
+    ]
+  },
+  openai:{
+    name:"ChatGPT",model:"gpt-4o-mini",
+    url:"https://api.openai.com/v1/chat/completions",
+    hint:"https://platform.openai.com/api-keys",
+    keyLabel:"OpenAI API Key (sk-...)",
+    suggested:[
+      {id:"gpt-4o-mini", label:"4o mini", desc:"Econômico e rápido"},
+      {id:"gpt-4o",      label:"4o",      desc:"Alta capacidade"},
+      {id:"gpt-4.1-mini",label:"4.1 mini",desc:"Mais recente / econômico"},
+    ]
+  },
 };
 
 const SCHEMA_DISPLAY={
@@ -582,6 +644,43 @@ async function callAI(systemPrompt, userMsg, maxTokens=1000){
 }
 
 // ─── UI de configuração de IA ─────────────────────────────────────────────────
+function renderModelChips(provider){
+  const container=q("model-chips-row");
+  if(!container) return;
+  const cfg=PROVIDERS[provider];
+  const currentModel=getModel(provider);
+  container.innerHTML=(cfg.suggested||[]).map(m=>{
+    const active=m.id===currentModel;
+    return`<button class="model-chip${active?" active":""}" title="${m.desc}" onclick="pickModelChip('${provider}','${m.id}')">${m.label}</button>`;
+  }).join("");
+}
+
+function pickModelChip(provider, modelId){
+  const inp=q("ai-model-inp");
+  if(inp){inp.value=modelId;}
+  renderModelChips_active(provider, modelId);
+  const hint=q("ai-model-hint");
+  const found=(PROVIDERS[provider].suggested||[]).find(m=>m.id===modelId);
+  if(hint) hint.textContent=(found?found.desc+" — ":"")+"Clique em 💾 Salvar chave para confirmar.";
+}
+
+function renderModelChips_active(provider, activeModelId){
+  const container=q("model-chips-row");
+  if(!container) return;
+  const cfg=PROVIDERS[provider];
+  container.innerHTML=(cfg.suggested||[]).map(m=>{
+    const active=m.id===activeModelId;
+    return`<button class="model-chip${active?" active":""}" title="${m.desc}" onclick="pickModelChip('${provider}','${m.id}')">${m.label}</button>`;
+  }).join("");
+}
+
+function onModelInpInput(){
+  // Atualiza destaque dos chips conforme o usuário digita no input
+  const inp=q("ai-model-inp");
+  if(!inp) return;
+  renderModelChips_active(aiProvider, inp.value.trim());
+}
+
 function selectProvider(p){
   aiProvider=p;
   document.querySelectorAll(".provider-card").forEach(c=>c.classList.remove("selected"));
@@ -604,6 +703,7 @@ function selectProvider(p){
     const hint=q("ai-model-hint");
     if(hint) hint.textContent="Padrão: "+cfg.model;
   }
+  renderModelChips(p);
   renderKeysStatus();
 }
 
@@ -630,20 +730,31 @@ function resetModel(){
 function saveKey(){
   const inp=q("ai-key-inp");
   const val=inp.value.trim();
-  if(!val){toast("Cole ou digite sua API key no campo.","err");return}
-  if(val.replace(/●/g,"").length===0){toast("Clique no 👁 para editar ou cole uma nova key.","err");return}
-  setKey(aiProvider,val);
-  // Salva modelo customizado se preenchido
+
+  // Se o campo ainda mostra bullets (chave não foi alterada), reutiliza a chave já salva
+  const keyUnchanged = inp.dataset.filled==="1" || val.replace(/●/g,"").length===0;
+  const existingKey  = getKey(aiProvider);
+
+  if(keyUnchanged){
+    // Só salva modelo se já existe chave; caso contrário pede a chave
+    if(!existingKey){toast("Cole sua API key no campo antes de salvar.","err");return}
+    // reutiliza a chave existente — não altera setKey
+  } else {
+    // Nova chave digitada — salva e mascara
+    if(!val){toast("Cole ou digite sua API key no campo.","err");return}
+    setKey(aiProvider,val);
+    inp.value="●".repeat(24);
+    inp.dataset.filled="1";
+    inp.type="password";
+  }
+
+  // Salva modelo (independente de ter mudado a chave ou não)
   const modelInp=q("ai-model-inp");
   if(modelInp){
     const modelVal=modelInp.value.trim();
     setModel(aiProvider,modelVal||PROVIDERS[aiProvider].model);
   }
   localStorage.setItem("pma_active_provider",aiProvider);
-  inp.value="●".repeat(24);
-  inp.dataset.filled="1";
-  inp.type="password";
-  // Atualiza URL do Gemini se modelo mudou
   updateGeminiUrl();
   toast("✓ Configuração salva para "+PROVIDERS[aiProvider].name+"!");
   renderKeysStatus();updateAIPill();
@@ -683,17 +794,11 @@ function renderKeysStatus(){
 function save(){const p=proj();if(p)p.updated=today();localStorage.setItem("pma_v3",JSON.stringify(projects));localStorage.setItem("pma_aid",activeId)}
 function load(){
   try{const r=localStorage.getItem("pma_v3");if(r){projects=JSON.parse(r);activeId=localStorage.getItem("pma_aid")||projects[0]?.id}}catch{}
-  if(!projects.length){projects=[mkDefault()];activeId=projects[0].id}
-  if(!activeId||!projects.find(p=>p.id===activeId))activeId=projects[0]?.id;
+  // Não cria projeto demo — lista começa vazia até o usuário mapear a pasta ou criar manualmente
+  if(!activeId||!projects.find(p=>p.id===activeId))activeId=projects[0]?.id||null;
 }
-function mkDefault(){
-  return{id:"p1",name:"OKR T — BI de Controle da Receita",context:"SEFA/PR · DTE-CMF · PROFISCO II",status:"em andamento",deadline:"2026-03-31",phase:"Execução",sponsor:"Chaiana",methodology:"EasyPMDOC",created:today(),updated:today(),
-    okrs:[{id:"o1",objective:"Entregar dashboard de controle da receita operacional",keyResults:[{id:"kr1",text:"Dashboard Power BI publicado e validado",progress:70},{id:"kr2",text:"Fontes SIAFIC integradas",progress:85},{id:"kr3",text:"Apresentação ao TCE-PR aprovada",progress:20}]}],
-    log:[{id:"l1",date:"2026-03-20",type:"marco",text:"Protótipo do dashboard entregue para validação interna.",author:"Julio Moreira"},{id:"l2",date:"2026-03-22",type:"risco",text:"Acesso ao ambiente de produção do SIAFIC ainda pendente com a TI.",author:"Julio Moreira"}],
-    risks:[{id:"r1",desc:"Acesso SIAFIC pendente com TI",prob:"Alta",impact:"Alto",status:"aberto"}],
-    milestones:[{id:"m1",name:"Prova de Conceito",date:"2025-09-30",status:"concluído"},{id:"m2",name:"Validação piloto",date:"2025-12-31",status:"concluído"},{id:"m3",name:"Implantação produção",date:"2026-03-31",status:"em andamento"}],
-    tasks:[],artefatos:{}};
-}
+
+
 
 // ═══════════════════════════════════════════════════════
 // FILE SYSTEM ACCESS API + IndexedDB (persiste o handle)
@@ -753,8 +858,17 @@ async function reconnectFolder(){
   }catch(e){if(e.name!=="AbortError")toast("Erro: "+e.message,"err")}
 }
 
+// Detecta se o ambiente suporta showDirectoryPicker (requer contexto de origem própria, não iframe cross-origin)
+function canUseDirectoryPicker(){
+  try{return typeof window.showDirectoryPicker==="function" && window.self===window.top;}catch{return false;}
+}
+
 async function pickFolder(){
-  if(!window.showDirectoryPicker){toast("Use Chrome ou Edge para este recurso.","err");return}
+  if(!canUseDirectoryPicker()){
+    // Fallback: abre seletor de múltiplos arquivos .json
+    openFolderFallback();
+    return;
+  }
   try{
     folderHandle=await window.showDirectoryPicker({mode:"readwrite"});
     await idbSaveHandle(folderHandle);
@@ -762,7 +876,59 @@ async function pickFolder(){
     metodologiaSkill = await loadMetodologiaSkill();
     toast(`Pasta "${folderHandle.name}" mapeada e salva!`);
     await saveToFolder();
-  }catch(e){if(e.name!=="AbortError")toast("Erro: "+e.message,"err")}
+  }catch(e){
+    if(e.name==="SecurityError"||e.message?.includes("cross origin")){
+      // Picker bloqueado por política de segurança — cai no fallback silenciosamente
+      openFolderFallback();
+    } else if(e.name!=="AbortError"){
+      toast("Erro: "+e.message,"err");
+    }
+  }
+}
+
+// Fallback: input file múltiplo para selecionar os .json manualmente
+function openFolderFallback(){
+  // Cria input file dinâmico, aceita múltiplos .json
+  let fi=q("folder-fallback-input");
+  if(!fi){
+    fi=document.createElement("input");
+    fi.type="file";fi.id="folder-fallback-input";
+    fi.accept=".json";fi.multiple=true;
+    fi.style.display="none";
+    fi.onchange=()=>loadJsonFiles(fi.files);
+    document.body.appendChild(fi);
+  }
+  fi.value="";
+  fi.click();
+}
+
+async function loadJsonFiles(fileList){
+  if(!fileList||!fileList.length)return;
+  let n=0,errs=0;
+  for(const file of fileList){
+    try{
+      const text=await file.text();
+      const data=JSON.parse(text);
+      if(!data.name){errs++;continue;}
+      if(!data.id)data.id=uid();
+      data.tasks    =data.tasks    ||[];
+      data.artefatos=data.artefatos||{};
+      data.okrs     =data.okrs     ||[];
+      data.log      =data.log      ||[];
+      data.risks    =data.risks    ||[];
+      data.milestones=data.milestones||[];
+      const idx=projects.findIndex(p=>p.id===data.id);
+      if(idx>=0)projects[idx]=data;else projects.push(data);
+      n++;
+    }catch{errs++;}
+  }
+  if(!n){toast(errs?"Arquivo(s) inválido(s).":"Nenhum arquivo selecionado.","err");return;}
+  activeId=projects[0].id;save();renderAll();
+  closeModal("m-folder");
+  toast(`${n} projeto(s) carregado(s)${errs?` · ${errs} ignorado(s)`:""}!`);
+  // Mostra aviso de modo sem pasta (salvamento manual necessário)
+  q("folder-bar").style.display="flex";
+  q("folder-name").innerHTML=`<span style="color:#92400e">⚠️ Modo sem pasta — salve via <strong>Backup → Baixar .json</strong> para persistir alterações</span>`;
 }
 
 async function saveToFolder(){
@@ -915,7 +1081,7 @@ function setView(v,btn){
 }
 function switchProject(id){activeId=id;save();render()}
 function renderSelector(){
-  q("proj-sel").innerHTML=projects.map(p=>`<option value="${p.id}"${p.id===activeId?" selected":""}>${p.name.length>26?p.name.slice(0,26)+"…":p.name}</option>`).join("");
+  q("proj-sel").innerHTML=projects.map(p=>`<option value="${p.id}"${p.id===activeId?" selected":""}>${p.name}</option>`).join("");
 }
 function renderAll(){renderSelector();render()}
 
@@ -924,7 +1090,29 @@ function renderAll(){renderSelector();render()}
 // ═══════════════════════════════════════════════════════
 function render(){
   const p=proj();
-  if(!p&&view!=="calendario"){q("content").innerHTML=`<div class="empty"><div class="empty-icon">📂</div><p>Nenhum projeto. Clique "+ Projeto".</p></div>`;return}
+  if(!p&&view!=="calendario"){
+    q("content").innerHTML=`
+    <div style="max-width:480px;margin:48px auto;text-align:center;padding:0 16px">
+      <div style="font-size:48px;margin-bottom:16px">📂</div>
+      <h2 style="font-size:18px;font-weight:700;color:#0f172a;margin-bottom:8px">Nenhum projeto carregado</h2>
+      <p style="font-size:13px;color:#64748b;line-height:1.7;margin-bottom:24px">
+        Mapeie a pasta onde estão os arquivos <code style="background:#f1f5f9;padding:1px 5px;border-radius:4px">.json</code> dos seus projetos,
+        ou crie um novo projeto manualmente.
+      </p>
+      <div style="display:flex;flex-direction:column;gap:10px;align-items:center">
+        <button class="btn btn-primary" style="width:220px;justify-content:center" onclick="openModal('m-folder')">
+          📁 Mapear pasta de projetos
+        </button>
+        <button class="btn btn-secondary" style="width:220px;justify-content:center" onclick="openModal('m-new')">
+          + Criar novo projeto
+        </button>
+        <button class="btn btn-secondary" style="width:220px;justify-content:center" onclick="openModal('m-backup')">
+          ⬆ Importar .json existente
+        </button>
+      </div>
+    </div>`;
+    return;
+  }
   ({dashboard:renderDashboard,okr:renderOKR,log:renderLog,riscos:renderRiscos,marcos:renderMarcos,artefatos:renderArtefatos,tarefas:renderTarefas,calendario:renderCalendario})[view]?.(p);
   updateTaskBadge();
 }
@@ -1867,8 +2055,15 @@ function openModal(id){
   if(id==="m-backup"){const p=proj();if(p)q("bk-info").textContent=`"${p.name}" · ${p.log?.length||0} registros`}
   if(id==="m-ai"){
     selectProvider(aiProvider);
-    // seleciona visualmente o provider ativo
     const ap=activeProvider();if(ap)selectProvider(ap);
+  }
+  if(id==="m-folder"){
+    // Mostra seção correta dependendo do suporte do ambiente
+    const canPick=canUseDirectoryPicker();
+    const pickerSec=q("m-folder-picker-section");
+    const fallbackSec=q("m-folder-fallback-section");
+    if(pickerSec) pickerSec.style.display=canPick?"block":"none";
+    if(fallbackSec) fallbackSec.style.display=canPick?"none":"block";
   }
   q(id)?.classList.add("open");
 }
