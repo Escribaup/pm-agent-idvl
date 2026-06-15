@@ -7,16 +7,18 @@ Ferramenta de gestão de projetos e OKRs com IA embutida. Arquivo HTML único, z
 - **Dashboard** — visão geral do projeto com progresso RAG dos OKRs
 - **OKRs** — objetivos e key results com sliders de progresso
 - **Log de acontecimentos** — registro estruturado com análise de IA (decisão, ação, risco, marco, reunião, blocker, lição, checkpoint)
+- **Checkpoints** — registro estruturado com progresso, impedimentos, iniciativas e confiança na entrega
 - **Riscos (CRGP)** — registro com probabilidade, impacto e status
 - **Marcos (CRO)** — linha do tempo do projeto
 - **Artefatos** — geração de documentos com IA (Easy Life Canvas, TAP, EAP, Backlog, Stakeholders, Nota Técnica, etc.)
 - **Tarefas** — gestão de tarefas com checklist, prioridade, vínculo a projeto e responsável
 - **Calendário** — visão mensal consolidada de tarefas, marcos e prazos de todos os projetos
+- **Servidor opcional** — sincronização REST com cache local para uso offline e backup entre dispositivos
 
 ## 🤖 Provedores de IA suportados
 
 - **Claude** (Anthropic) — `claude-haiku-4-5` ou qualquer modelo configurável
-- **Gemini** (Google) — `gemini-2.5-flash` ou qualquer modelo configurável
+- **Gemini** (Google) — `gemini-2.0-flash` ou qualquer modelo configurável
 - **ChatGPT** (OpenAI) — `gpt-4o-mini` ou qualquer modelo configurável
 
 As API keys ficam salvas apenas no `localStorage` do navegador. Nunca são enviadas para servidor.
@@ -24,6 +26,7 @@ As API keys ficam salvas apenas no `localStorage` do navegador. Nunca são envia
 ## 💾 Persistência de dados
 
 - **localStorage** — dados salvos automaticamente no navegador
+- **Sincronização com servidor** — projetos carregados/atualizados via API quando configurada
 - **Pasta mapeada** (File System Access API) — sincronização com pasta local/Google Drive
 - **Exportação/Importação JSON** — backup manual e transferência entre dispositivos
 
